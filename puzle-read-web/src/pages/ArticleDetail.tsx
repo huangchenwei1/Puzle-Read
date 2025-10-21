@@ -6,18 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ArrowLeft, MoreVertical, Trash2, Play, X, ExternalLink } from "lucide-react"
-import { mockArticles } from "./ArticleList"
-import type { Article } from "./ArticleList"
-
-// 评论类型
-interface Comment {
-  id: string
-  author: string
-  content: string
-  time: string
-  replies?: Comment[]
-  quotedText?: string  // 引用的段落内容（用于原文页的段落评论）
-}
+import type { Article, Comment } from "@/data/mockArticles"
+import { mockArticles } from "@/data/mockArticles"
 
 export default function ArticleDetail() {
   const navigate = useNavigate()

@@ -3,8 +3,8 @@ import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ArrowLeft, MoreHorizontal, MessageCircle, X, ChevronDown, ChevronUp } from "lucide-react"
-import { mockArticles } from "./ArticleList"
+import { ArrowLeft, MoreHorizontal, MessageCircle, X } from "lucide-react"
+import { mockArticles } from "@/data/mockArticles"
 
 // 段落评论类型
 interface ParagraphComment {
