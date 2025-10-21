@@ -69,12 +69,49 @@ export default function ArticleSource() {
         // 如果有保存的数据，使用保存的数据
         initialParagraphs = JSON.parse(savedComments)
       } else {
-        // 否则创建新的段落数据
+        // 创建新的段落数据
         initialParagraphs = contentParagraphs.map((content, index) => ({
           id: `p-${index}`,
           content,
           comments: []
         }))
+
+        // 将文章讨论区中的引用式评论关联到对应的段落
+        if (article.comments && article.comments.length > 0) {
+          // 递归查找所有包含 quotedText 的评论
+          const findQuotedComments = (comments: any[]): any[] => {
+            let result: any[] = []
+            for (const comment of comments) {
+              if (comment.quotedText) {
+                result.push(comment)
+              }
+              if (comment.replies && comment.replies.length > 0) {
+                result = result.concat(findQuotedComments(comment.replies))
+              }
+            }
+            return result
+          }
+
+          const quotedComments = findQuotedComments(article.comments)
+
+          // 将引用评论匹配到段落
+          quotedComments.forEach((comment) => {
+            const matchedParagraph = initialParagraphs.find(p => 
+              p.content.includes(comment.quotedText) || comment.quotedText.includes(p.content)
+            )
+            
+            if (matchedParagraph) {
+              // 添加评论到段落
+              const paragraphComment: ParagraphComment = {
+                id: comment.id,
+                author: comment.author,
+                content: comment.content,
+                time: comment.time
+              }
+              matchedParagraph.comments.push(paragraphComment)
+            }
+          })
+        }
       }
 
       setParagraphs(initialParagraphs)

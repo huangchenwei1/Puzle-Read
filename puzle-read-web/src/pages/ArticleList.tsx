@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Search, Plus, Link, Play } from "lucide-react"
@@ -500,16 +499,9 @@ export default function ArticleList() {
                         // 有图片：图文混排（右侧小缩略图）
                         <div className="flex gap-3">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-2">
-                              <CardTitle className="text-base font-medium text-gray-900 line-clamp-2">
-                                {article.title}
-                              </CardTitle>
-                              {article.isDiscussed && (
-                                <Badge variant="secondary" className="bg-gray-100 text-gray-600 shrink-0">
-                                  Puzle回复
-                                </Badge>
-                              )}
-                            </div>
+                            <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
+                              {article.title}
+                            </CardTitle>
                             <CardDescription className="text-sm text-gray-500 line-clamp-2">
                               {article.content}
                             </CardDescription>
@@ -525,16 +517,9 @@ export default function ArticleList() {
                       ) : (
                         // 无图片：纯文本
                         <div>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <CardTitle className="text-base font-medium text-gray-900 line-clamp-2">
-                              {article.title}
-                            </CardTitle>
-                            {article.isDiscussed && (
-                              <Badge variant="secondary" className="bg-gray-100 text-gray-600 shrink-0">
-                                Puzle回复
-                              </Badge>
-                            )}
-                          </div>
+                          <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
+                            {article.title}
+                          </CardTitle>
                           <CardDescription className="text-sm text-gray-500 line-clamp-3">
                             {article.content}
                           </CardDescription>
@@ -546,16 +531,9 @@ export default function ArticleList() {
                   {/* 文章类型卡片 - 纯文本 */}
                   {article.type === "article" && (
                     <div>
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <CardTitle className="text-base font-medium text-gray-900 line-clamp-2">
-                          {article.title}
-                        </CardTitle>
-                        {article.isDiscussed && (
-                          <Badge variant="secondary" className="bg-gray-100 text-gray-600 shrink-0">
-                            Puzle回复
-                          </Badge>
-                        )}
-                      </div>
+                      <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
+                        {article.title}
+                      </CardTitle>
                       <CardDescription className="text-sm text-gray-500 line-clamp-3">
                         {article.content}
                       </CardDescription>
@@ -565,16 +543,9 @@ export default function ArticleList() {
                   {/* 媒体类型卡片 - 标题和描述 */}
                   {article.type === "media" && (
                     <div>
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <CardTitle className="text-base font-medium text-gray-900 line-clamp-2">
-                          {article.title}
-                        </CardTitle>
-                        {article.isDiscussed && (
-                          <Badge variant="secondary" className="bg-gray-100 text-gray-600 shrink-0">
-                            Puzle回复
-                          </Badge>
-                        )}
-                      </div>
+                      <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
+                        {article.title}
+                      </CardTitle>
                       <CardDescription className="text-sm text-gray-500 line-clamp-2">
                         {article.content}
                       </CardDescription>
