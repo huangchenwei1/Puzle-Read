@@ -16,9 +16,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Plus, Link, Play } from "lucide-react";
-import type { Article } from "@/data/mockArticles";
+import { Search, Plus, Link, Play, MessageCircle } from "lucide-react";
+import type { Article, Comment } from "@/data/mockArticles";
 import { mockArticles } from "@/data/mockArticles";
+
+// 递归计算总评论数（包括嵌套回复）
+const countTotalComments = (comments?: Comment[]): number => {
+  if (!comments || comments.length === 0) return 0;
+
+  let total = comments.length;
+  comments.forEach((comment) => {
+    if (comment.replies) {
+      total += countTotalComments(comment.replies);
+    }
+  });
+  return total;
+};
 
 export default function ArticleList() {
   const navigate = useNavigate();
@@ -37,8 +50,14 @@ export default function ArticleList() {
         // 过滤掉 localStorage 中与 mockArticles ID 重复的数据
         const mockIds = new Set(mockArticles.map((a) => a.id));
         const userArticles = parsed.filter((a: Article) => !mockIds.has(a.id));
-        // 将用户创建的文章放在前面，mock 数据放在后面
-        setArticles([...userArticles, ...mockArticles]);
+
+        // 为 mock 数据与 localStorage 中的数据合并（如果存在则使用 localStorage 中的版本）
+        const storedMockArticles = parsed.filter((a: Article) => mockIds.has(a.id));
+        const storedMockIds = new Set(storedMockArticles.map((a: Article) => a.id));
+        const originalMockArticles = mockArticles.filter((a: Article) => !storedMockIds.has(a.id));
+
+        // 将用户创建的文章放在前面，然后是更新过的 mock 文章，最后是未更新的 mock 文章
+        setArticles([...userArticles, ...storedMockArticles, ...originalMockArticles]);
       } else {
         setArticles(mockArticles);
       }
@@ -270,6 +289,15 @@ export default function ArticleList() {
                               <span>{article.time}</span>
                               <span>·</span>
                               <span>{article.source}</span>
+                              {article.comments && countTotalComments(article.comments) > 0 && (
+                                <>
+                                  <span>·</span>
+                                  <div className="flex items-center gap-1">
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    <span>{countTotalComments(article.comments)}</span>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
 
