@@ -227,22 +227,20 @@ export default function ArticleList() {
 
   // 时间分组函数
   const getTimeGroup = (timestamp: number): string => {
-    const now = Date.now();
-    const diff = now - timestamp;
     const oneDay = 24 * 60 * 60 * 1000;
-    const oneWeek = 7 * oneDay;
-    const oneMonth = 30 * oneDay;
 
     const todayStart = new Date().setHours(0, 0, 0, 0);
     const yesterdayStart = todayStart - oneDay;
+    const thisWeekStart = todayStart - 7 * oneDay;
+    const thisMonthStart = todayStart - 30 * oneDay;
 
     if (timestamp >= todayStart) {
       return "今天";
     } else if (timestamp >= yesterdayStart) {
       return "昨天";
-    } else if (diff < oneWeek) {
+    } else if (timestamp >= thisWeekStart) {
       return "本周";
-    } else if (diff < oneMonth) {
+    } else if (timestamp >= thisMonthStart) {
       return "本月";
     } else {
       return "更久";
@@ -287,7 +285,7 @@ export default function ArticleList() {
       {/* 移动端容器 */}
       <div className="max-w-md mx-auto min-h-screen flex flex-col bg-white">
         {/* 顶部导航栏 */}
-        <header className="sticky top-0 bg-white border-b border-gray-200 z-10">
+        <header className="sticky top-0 bg-white border-b border-gray-200 z-20">
           <div className="flex items-center justify-between px-4 py-3">
             <h1 className="text-xl font-semibold text-gray-900 flex-1">
               PuzleRead
