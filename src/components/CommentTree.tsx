@@ -273,6 +273,15 @@ const CommentItem: React.FC<CommentItemProps> = ({
   );
 };
 
+// 递归初始化评论深度
+const initializeCommentDepth = (comments: Comment[], parentDepth: number = 0): Comment[] => {
+  return comments.map(comment => ({
+    ...comment,
+    depth: parentDepth,
+    replies: comment.replies ? initializeCommentDepth(comment.replies, parentDepth + 1) : undefined
+  }));
+};
+
 export const CommentTree: React.FC<CommentTreeProps> = ({
   comments,
   onReply,
@@ -282,14 +291,13 @@ export const CommentTree: React.FC<CommentTreeProps> = ({
   articleId
 }) => {
 
-  // 对评论按时间排序，可考虑扩展为其他排序方式
-  const sortedComments = [...comments].sort((a, b) =>
-    new Date(b.time).getTime() - new Date(a.time).getTime()
-  );
+  // 不排序评论，保持原始顺序（评论树状结构应该保持用户提交顺序）
+  // 初始化每个评论的深度，确保嵌套回复正确显示
+  const displayComments = initializeCommentDepth(comments);
 
   return (
     <div className="space-y-0">
-      {sortedComments.map((comment) => (
+      {displayComments.map((comment) => (
         <CommentItem
           key={comment.id}
           comment={comment}
