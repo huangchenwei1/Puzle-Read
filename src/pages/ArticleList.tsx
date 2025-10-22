@@ -343,8 +343,8 @@ export default function ArticleList() {
         {/* 文章列表 */}
         <main className="flex-1 overflow-y-auto pb-20">
           <div className="p-4">
-            {sortedGroups.map((groupName) => (
-              <div key={groupName} className="mb-4">
+            {sortedGroups.map((groupName, groupIndex) => (
+              <div key={groupName}>
                 {/* 时间分组标题 */}
                 <h2 className="text-sm font-medium text-gray-500 mb-3 px-2">
                   {groupName}
@@ -352,7 +352,7 @@ export default function ArticleList() {
 
                 {/* 该分组的文章列表 */}
                 <div>
-                  {sortedGroupedArticles[groupName].map((article, index) => (
+                  {sortedGroupedArticles[groupName].map((article) => (
                     <div key={article.id}>
                       {/* 文章内容 */}
                       <div
@@ -432,12 +432,15 @@ export default function ArticleList() {
                       </div>
 
                       {/* 分隔线 */}
-                      {index < sortedGroupedArticles[groupName].length - 1 && (
-                        <div className="border-b border-gray-100" />
-                      )}
+                      <div className="border-b border-gray-100" />
                     </div>
                   ))}
                 </div>
+
+                {/* 分组间的分隔线 */}
+                {groupIndex < sortedGroups.length - 1 && (
+                  <div className="py-2" />
+                )}
               </div>
             ))}
           </div>
