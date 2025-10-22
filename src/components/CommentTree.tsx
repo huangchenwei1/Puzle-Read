@@ -33,11 +33,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
   const handleReplySubmit = () => {
     if (replyContent.trim()) {
-      console.log('CommentItem handleReplySubmit called');
-      console.log('Replying to comment:', comment.id);
-      console.log('Comment depth:', comment.depth);
-      console.log('Reply content:', replyContent.trim());
-
       onReply(comment.id, replyContent.trim());
       setReplyContent('');
       setIsReplying(false);
@@ -70,7 +65,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
     onVote(comment.id, direction);
   };
 
-  console.log(`Comment ${comment.id} depth: ${depth}, indentLeft: ${indentLeft}px`);
 
   return (
     <div
@@ -271,8 +265,6 @@ export const CommentTree: React.FC<CommentTreeProps> = ({
   onVote,
   articleId
 }) => {
-  console.log('CommentTree rendering with comments:', comments);
-  console.log('onReply function:', onReply);
 
   // 对评论按时间排序，可考虑扩展为其他排序方式
   const sortedComments = [...comments].sort((a, b) =>

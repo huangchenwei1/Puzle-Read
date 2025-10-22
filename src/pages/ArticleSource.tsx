@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,14 +97,13 @@ export default function ArticleSource() {
     return mockArticles.find((a) => a.id === id);
   };
 
-  const article = findArticle();
+  const article = useMemo(() => findArticle(), [id]);
 
   // 初始化段落数据和文章评论
   useEffect(() => {
     if (article && id) {
       // 将文章内容拆分为段落
       const contentParagraphs = [
-        article.content,
         "在当今快速发展的技术环境中，我们看到了前所未有的创新和变革。这些变化不仅影响着技术本身，更深刻地改变着我们的工作方式和生活方式。",
         "对于个人而言，保持学习和适应能力变得越来越重要。我们需要不断更新自己的知识体系，才能在这个快速变化的时代保持竞争力。",
         "同时，技术的发展也带来了新的机遇。通过合理利用这些工具和平台，我们能够创造出更多的价值，实现个人和职业的成长。",
@@ -303,11 +302,6 @@ export default function ArticleSource() {
 
     const isReply = !!parentId && !!content;
 
-    console.log('=== handleAddArticleComment ===');
-    console.log('parentId:', parentId);
-    console.log('isReply:', isReply);
-    console.log('current comments:', comments);
-
     // 如果是回复，需要先找到父评论的深度
     const getParentDepth = (comments: Comment[], targetParentId: string): number => {
       for (const comment of comments) {
@@ -326,7 +320,6 @@ export default function ArticleSource() {
     if (isReply && parentId) {
       // 先从当前状态中找
       parentDepth = getParentDepth(comments, parentId);
-      console.log('parentDepth from current comments:', parentDepth);
 
       // 如果没找到，从 localStorage 中找
       if (parentDepth === -1) {
@@ -336,20 +329,15 @@ export default function ArticleSource() {
           const foundArticle = parsed.find((a: any) => a.id === id);
           if (foundArticle && foundArticle.comments) {
             parentDepth = getParentDepth(foundArticle.comments, parentId);
-            console.log('parentDepth from storage:', parentDepth);
           }
         }
       }
 
       // 如果还是没找到，设为 0
       if (parentDepth === -1) {
-        console.log('parentDepth not found, setting to 0');
         parentDepth = 0;
       }
     }
-
-    console.log('final parentDepth:', parentDepth);
-    console.log('new comment depth will be:', parentDepth + 1);
 
     const newCommentObj: Comment = {
       id: Date.now().toString(),
@@ -369,16 +357,11 @@ export default function ArticleSource() {
 
     if (isReply) {
       // 为现有评论添加回复 - 使用当前state而不是storage中的数据
-      console.log('Adding reply to tree, parentId:', parentId);
-      console.log('Current comments before adding:', JSON.stringify(comments, null, 2));
-
       updatedComments = addReplyToCommentTree(
         comments,  // 使用当前state
         parentId,
         newCommentObj
       );
-
-      console.log('Updated comments after adding:', JSON.stringify(updatedComments, null, 2));
 
       // 更新storage
       const articleIndex = storedArticles.findIndex((a: any) => a.id === id);
