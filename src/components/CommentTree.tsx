@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ChevronDown, ChevronUp, MessageSquare, ThumbsUp, ThumbsDown, MoreHorizontal } from 'lucide-react';
+import { MessageSquare, ThumbsUp, ThumbsDown, Trash2 } from 'lucide-react';
 import type { Comment } from '@/data/mockArticles';
 
 interface CommentTreeProps {
   comments: Comment[];
   onReply: (parentId: string, content: string) => void;
   onVote: (commentId: string, direction: 'up' | 'down') => void;
+  onDelete: (commentId: string) => void;
   articleId: string;
 }
 
@@ -16,6 +16,7 @@ interface CommentItemProps {
   comment: Comment;
   onReply: (parentId: string, content: string) => void;
   onVote: (commentId: string, direction: 'up' | 'down') => void;
+  onDelete: (commentId: string) => void;
   showThreadLine?: boolean;
   articleId: string;
 }
@@ -24,6 +25,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   comment,
   onReply,
   onVote,
+  onDelete,
   showThreadLine = false,
   articleId
 }) => {
@@ -47,8 +49,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   };
 
   const depth = comment.depth || 0;
-  const maxDepth = 8; // 最大缩进深度
-  const indentLeft = Math.min(depth, maxDepth) * 16; // 16px 每层缩进
+  const indentLeft = depth * 24; // 24px 每层缩进
 
   // 递归计数所有子评论数量
   const getTotalReplies = (comment: Comment): number => {
@@ -58,58 +59,35 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
   const totalReplies = getTotalReplies(comment);
 
-  // 处理投票按钮点击
-  const handleVoteClick = (direction: 'up' | 'down') => {
-    const newVoteStatus = comment.voteStatus === direction ? null : direction;
-    // 这里需要更新 comment.voteStatus，但由于是 props，实际更新应该通过父组件处理
-    onVote(comment.id, direction);
-  };
-
-
   return (
     <div
       className="relative"
       style={{ marginLeft: `${indentLeft}px` }}
     >
-      {/* 线程线 */}
+      {/* Reddit 风格的竖线 */}
       {showThreadLine && depth > 0 && (
-        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200 transform -translate-x-2" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-300 transform -translate-x-3.5" />
       )}
 
       {/* 评论主体 */}
-      <div className="flex gap-2 py-2 bg-white rounded-lg">
+      <div className="flex gap-3 py-3 bg-white">
         {/* 评论内容 */}
         <div className="flex-1 min-w-0">
+          {/* 作者信息 */}
           <div className="flex items-center gap-2 mb-1">
-            {/* 头像 */}
-            <Avatar className="h-6 w-6">
-              <AvatarFallback
-                className={
-                  comment.author === "Puzle"
-                    ? "bg-blue-500 text-white text-xs"
-                    : "bg-gray-500 text-white text-xs"
-                }
-              >
-                {comment.author === "Puzle" ? "P" : comment.author.slice(0, 1)}
-              </AvatarFallback>
-            </Avatar>
-
-            {/* 用户名 */}
             <span
-              className={`text-sm font-medium ${
-                comment.author === "Puzle" ? "text-blue-600" : "text-gray-900"
+              className={`text-sm ${
+                comment.author === "Puzle" ? "text-blue-600" : "text-gray-700"
               }`}
             >
               {comment.author}
             </span>
 
-            {/* 时间 */}
             <span className="text-xs text-gray-400">{comment.time}</span>
 
-            {/* 评分 */}
-            <span className="text-xs text-gray-400">
-              {comment.score !== undefined && comment.score >= 0 && `+${comment.score}`}
-            </span>
+            {comment.score !== undefined && comment.score > 0 && (
+              <span className="text-xs text-gray-400">+{comment.score}</span>
+            )}
           </div>
 
           {/* 评论文本 */}
@@ -118,88 +96,103 @@ const CommentItem: React.FC<CommentItemProps> = ({
           </div>
 
           {/* 操作按钮和投票区域 */}
-          <div className="flex items-center gap-4 text-xs">
-            {/* 状态1：无操作，显示赞和踩两按钮 */}
-            {comment.voteStatus === null && (
+          <div className="flex items-center gap-3 text-xs">
+            {/* 只在Puzle的内容时显示投票按钮 */}
+            {comment.author === "Puzle" && (
               <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-gray-100"
-                  onClick={() => onVote(comment.id, 'up')}
-                >
-                  <ThumbsUp className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-gray-100"
-                  onClick={() => onVote(comment.id, 'down')}
-                >
-                  <ThumbsDown className="h-3 w-3" />
-                </Button>
-                <span className="text-gray-300">|</span>
+                {/* 状态1：无操作，显示赞和踩两按钮 */}
+                {comment.voteStatus === null && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                      onClick={() => onVote(comment.id, 'up')}
+                    >
+                      <ThumbsUp className="h-3 w-3 mr-1" />
+                      赞
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => onVote(comment.id, 'down')}
+                    >
+                      <ThumbsDown className="h-3 w-3 mr-1" />
+                      踩
+                    </Button>
+                    <span className="text-gray-300">|</span>
+                  </>
+                )}
+
+                {/* 状态2：已赞，只显示已赞的按钮 */}
+                {comment.voteStatus === 'up' && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 bg-blue-50 text-blue-600 hover:bg-blue-100"
+                      onClick={() => onVote(comment.id, 'up')}
+                    >
+                      <ThumbsUp className="h-3 w-3 mr-1" />
+                      已赞
+                    </Button>
+                    <span className="text-gray-300">|</span>
+                  </>
+                )}
+
+                {/* 状态3：已踩，只显示已踩的按钮 */}
+                {comment.voteStatus === 'down' && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 bg-red-50 text-red-600 hover:bg-red-100"
+                      onClick={() => onVote(comment.id, 'down')}
+                    >
+                      <ThumbsDown className="h-3 w-3 mr-1" />
+                      已踩
+                    </Button>
+                    <span className="text-gray-300">|</span>
+                  </>
+                )}
               </>
             )}
 
-            {/* 状态2：已赞，只显示已赞的按钮 */}
-            {comment.voteStatus === 'up' && (
-              <>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 bg-blue-100 text-blue-600 hover:bg-blue-200"
-                    onClick={() => onVote(comment.id, 'up')}
-                  >
-                    <ThumbsUp className="h-3 w-3" />
-                  </Button>
-                  <span className="text-xs text-blue-600">已赞</span>
-                </div>
-                <span className="text-gray-300">|</span>
-              </>
-            )}
-
-            {/* 状态3：已踩，只显示已踩的按钮 */}
-            {comment.voteStatus === 'down' && (
-              <>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 bg-red-100 text-red-600 hover:bg-red-200"
-                    onClick={() => onVote(comment.id, 'down')}
-                  >
-                    <ThumbsDown className="h-3 w-3" />
-                  </Button>
-                  <span className="text-xs text-red-600">已踩</span>
-                </div>
-                <span className="text-gray-300">|</span>
-              </>
-            )}
+            {/* 回复按钮 */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto p-0 text-gray-500 hover:text-gray-700"
+              className="h-6 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
               onClick={() => setIsReplying(!isReplying)}
             >
               <MessageSquare className="h-3 w-3 mr-1" />
               回复
             </Button>
+
+            {/* 展开/收起回复 */}
             {totalReplies > 0 && (
               <button
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded"
                 onClick={() => setShowNested(!showNested)}
               >
-                {showNested ? "收起" : "展开"} {totalReplies} 条回复
+                {showNested ? "收起" : "展开"} {totalReplies}
               </button>
             )}
+
+            {/* 删除按钮 */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-auto p-0 text-gray-500 hover:text-gray-700"
+              className="h-6 px-2 text-gray-500 hover:text-red-600 hover:bg-red-50"
+              onClick={() => {
+                if (confirm('确定要删除这条评论吗？')) {
+                  onDelete(comment.id);
+                }
+              }}
             >
-              <MoreHorizontal className="h-3 w-3" />
+              <Trash2 className="h-3 w-3 mr-1" />
+              删除
             </Button>
           </div>
 
@@ -242,13 +235,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
       {/* 子评论 */}
       {comment.replies && comment.replies.length > 0 && showNested && (
-        <div className="mt-2">
+        <div className="mt-0">
           {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
               onReply={onReply}
               onVote={onVote}
+              onDelete={onDelete}
               showThreadLine={true}
               articleId={articleId}
             />
@@ -263,6 +257,7 @@ export const CommentTree: React.FC<CommentTreeProps> = ({
   comments,
   onReply,
   onVote,
+  onDelete,
   articleId
 }) => {
 
@@ -272,13 +267,14 @@ export const CommentTree: React.FC<CommentTreeProps> = ({
   );
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0">
       {sortedComments.map((comment) => (
         <CommentItem
           key={comment.id}
           comment={comment}
           onReply={onReply}
           onVote={onVote}
+          onDelete={onDelete}
           articleId={articleId}
         />
       ))}

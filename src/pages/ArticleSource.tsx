@@ -62,6 +62,20 @@ export default function ArticleSource() {
     });
   };
 
+  const deleteComment = (commentsList: Comment[], commentId: string): Comment[] => {
+    return commentsList
+      .filter(comment => comment.id !== commentId)
+      .map(comment => {
+        if (comment.replies && comment.replies.length > 0) {
+          return {
+            ...comment,
+            replies: deleteComment(comment.replies, commentId)
+          }
+        }
+        return comment
+      })
+  }
+
   // 保存评论到 localStorage
   const saveCommentsToStorage = (updatedComments: Comment[]) => {
     if (!id) return;
@@ -668,6 +682,11 @@ export default function ArticleSource() {
                 onVote={(commentId: string, direction: 'up' | 'down') => {
                   // 简单的投票实现
                   const updatedComments = updateCommentScore(comments, commentId, direction);
+                  setComments(updatedComments);
+                  saveCommentsToStorage(updatedComments);
+                }}
+                onDelete={(commentId: string) => {
+                  const updatedComments = deleteComment(comments, commentId);
                   setComments(updatedComments);
                   saveCommentsToStorage(updatedComments);
                 }}
