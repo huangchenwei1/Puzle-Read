@@ -277,7 +277,7 @@ export default function ArticleDetail() {
         {/* 顶部导航 */}
         <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 h-14">
           <div className="h-full flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
@@ -286,8 +286,8 @@ export default function ArticleDetail() {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h3 className="text-lg font-semibold text-gray-900">
-                评论
+              <h3 className="text-lg text-gray-900">
+                讨论
                 {comments.length > 0 && (
                   <span className="ml-2 text-gray-400 text-sm font-normal">
                     {countTotalComments(comments)}
