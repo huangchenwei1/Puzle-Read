@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,8 +33,86 @@ const countTotalComments = (comments?: Comment[]): number => {
   return total;
 };
 
+// 比较两个时间字符串，返回更新的那个
+const getNewerTime = (time1: string, time2: string): string => {
+  // 如果其中一个是"刚刚"，它是最新的
+  if (time1 === "刚刚") return time1;
+  if (time2 === "刚刚") return time2;
+
+  // 将时间字符串转换为时间戳进行比较
+  const ts1 = parseCommentTimeToTimestamp(time1);
+  const ts2 = parseCommentTimeToTimestamp(time2);
+
+  return ts1 > ts2 ? time1 : time2;
+};
+
+// 递归获取最新评论时间（字符串形式）
+const getLatestCommentTime = (comments?: Comment[]): string | null => {
+  if (!comments || comments.length === 0) return null;
+
+  let latestTime: string | null = null;
+
+  const traverse = (commentsList: Comment[]) => {
+    for (const comment of commentsList) {
+      if (!latestTime) {
+        latestTime = comment.time;
+      } else {
+        latestTime = getNewerTime(latestTime, comment.time);
+      }
+
+      if (comment.replies && comment.replies.length > 0) {
+        traverse(comment.replies);
+      }
+    }
+  };
+
+  traverse(comments);
+  return latestTime;
+};
+
+// 将评论时间字符串转换为时间戳
+const parseCommentTimeToTimestamp = (timeStr: string): number => {
+  const now = Date.now();
+
+  // 处理"刚刚"
+  if (timeStr === "刚刚") {
+    return now;
+  }
+
+  // 提取数字和时间单位（支持小数，如 1.5小时前）
+  const match = timeStr.match(/^(\d+(?:\.\d+)?)(分钟|小时|天|周|月|年)前$/);
+  if (!match) return now;
+
+  const num = parseFloat(match[1]);
+  const unit = match[2];
+
+  const timeUnits: Record<string, number> = {
+    分钟: 60 * 1000,
+    小时: 60 * 60 * 1000,
+    天: 24 * 60 * 60 * 1000,
+    周: 7 * 24 * 60 * 60 * 1000,
+    月: 30 * 24 * 60 * 60 * 1000,
+    年: 365 * 24 * 60 * 60 * 1000,
+  };
+
+  const unitMs = timeUnits[unit] || 0;
+  return now - num * unitMs;
+};
+
+// 获取文章的排序时间（优先使用最新评论时间，否则使用文章发布时间）
+const getArticleSortTime = (article: Article): number => {
+  if (article.comments && article.comments.length > 0) {
+    const latestCommentTime = getLatestCommentTime(article.comments);
+    if (latestCommentTime) {
+      return parseCommentTimeToTimestamp(latestCommentTime);
+    }
+  }
+  return article.timestamp;
+};
+
 export default function ArticleList() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -52,12 +130,22 @@ export default function ArticleList() {
         const userArticles = parsed.filter((a: Article) => !mockIds.has(a.id));
 
         // 为 mock 数据与 localStorage 中的数据合并（如果存在则使用 localStorage 中的版本）
-        const storedMockArticles = parsed.filter((a: Article) => mockIds.has(a.id));
-        const storedMockIds = new Set(storedMockArticles.map((a: Article) => a.id));
-        const originalMockArticles = mockArticles.filter((a: Article) => !storedMockIds.has(a.id));
+        const storedMockArticles = parsed.filter((a: Article) =>
+          mockIds.has(a.id),
+        );
+        const storedMockIds = new Set(
+          storedMockArticles.map((a: Article) => a.id),
+        );
+        const originalMockArticles = mockArticles.filter(
+          (a: Article) => !storedMockIds.has(a.id),
+        );
 
         // 将用户创建的文章放在前面，然后是更新过的 mock 文章，最后是未更新的 mock 文章
-        setArticles([...userArticles, ...storedMockArticles, ...originalMockArticles]);
+        setArticles([
+          ...userArticles,
+          ...storedMockArticles,
+          ...originalMockArticles,
+        ]);
       } else {
         setArticles(mockArticles);
       }
@@ -72,7 +160,7 @@ export default function ArticleList() {
       window.removeEventListener("storage", loadArticles);
       window.removeEventListener("focus", loadArticles);
     };
-  }, []);
+  }, [location.pathname]);
 
   const handleImportLink = () => {
     setIsPopoverOpen(false);
@@ -162,10 +250,11 @@ export default function ArticleList() {
     }
   };
 
-  // 按时间分组
+  // 按时间分组（使用最新评论时间或文章发布时间）
   const groupedArticles = filteredArticles.reduce(
     (groups, article) => {
-      const group = getTimeGroup(article.timestamp);
+      const sortTime = getArticleSortTime(article);
+      const group = getTimeGroup(sortTime);
       if (!groups[group]) {
         groups[group] = [];
       }
@@ -175,10 +264,23 @@ export default function ArticleList() {
     {} as Record<string, Article[]>,
   );
 
+  // 对每个分组内的文章按最新评论时间倒排（最新的在前）
+  const sortedGroupedArticles = Object.entries(groupedArticles).reduce(
+    (acc, [group, articlesList]) => {
+      acc[group] = articlesList.sort((a, b) => {
+        const timeA = getArticleSortTime(a);
+        const timeB = getArticleSortTime(b);
+        return timeB - timeA; // 倒序，最新的在前
+      });
+      return acc;
+    },
+    {} as Record<string, Article[]>,
+  );
+
   // 分组顺序
   const groupOrder = ["今天", "昨天", "本周", "本月", "更久"];
   const sortedGroups = groupOrder.filter(
-    (group) => groupedArticles[group]?.length > 0,
+    (group) => sortedGroupedArticles[group]?.length > 0,
   );
 
   return (
@@ -251,7 +353,7 @@ export default function ArticleList() {
 
                 {/* 该分组的文章列表 */}
                 <div className="space-y-2">
-                  {groupedArticles[groupName].map((article) => (
+                  {sortedGroupedArticles[groupName].map((article) => (
                     <Card
                       key={article.id}
                       className="cursor-pointer hover:border-gray-400 transition-colors border-gray-200 overflow-hidden py-0"
@@ -282,22 +384,38 @@ export default function ArticleList() {
                         <div className="flex justify-between items-start gap-3">
                           {/* 左侧：标题和元信息（垂直排列） */}
                           <div className="flex-1 min-w-0">
+                            {/* 标题行 - 标题 + 评论数内联 */}
                             <h3 className="text-base font-medium text-gray-900 line-clamp-2 mb-1.5">
                               {article.title}
+                              {article.comments &&
+                                countTotalComments(article.comments) > 0 && (
+                                  <span
+                                    className="ml-2 inline-flex items-center gap-0.5 text-xs text-gray-400"
+                                    style={{
+                                      verticalAlign: "middle",
+                                      position: "relative",
+                                      top: "-1.5px",
+                                    }}
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    <span>
+                                      {countTotalComments(article.comments)}
+                                    </span>
+                                  </span>
+                                )}
                             </h3>
+                            {/* 元信息行 - 来源 + 最新评论时间 */}
                             <div className="flex items-center gap-1.5 text-xs text-gray-400">
                               <span>{article.source}</span>
-                              {article.comments && countTotalComments(article.comments) > 0 && (
-                                <>
-                                  <span>·</span>
-                                  <div className="flex items-center gap-1">
-                                    <MessageCircle className="w-3.5 h-3.5" />
-                                    <span>{countTotalComments(article.comments)}</span>
-                                  </div>
-                                </>
-                              )}
                               <span>·</span>
-                              <span>{article.time}</span>
+                              {article.comments &&
+                              article.comments.length > 0 ? (
+                                <span>
+                                  {getLatestCommentTime(article.comments)}评论
+                                </span>
+                              ) : (
+                                <span>{article.time}</span>
+                              )}
                             </div>
                           </div>
 
