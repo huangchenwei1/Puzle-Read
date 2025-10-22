@@ -370,7 +370,16 @@ export const mockArticles: Article[] = [
     isDiscussed: false,
     imageUrl: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&h=400&fit=crop",
     type: "link",
-    originalUrl: "https://developers.google.com/io-highlights"
+    originalUrl: "https://developers.google.com/io-highlights",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "Google I/O 2024 的主题聚焦在几个关键方向：\n\n**Gemini 模型升级**：新版本的多模态能力更强，特别是在代码理解和生成方面有显著提升。对开发者来说，这意味着更高效的编码辅助工具。\n\n**开发者工具改进**：Android Studio 的新版本集成了更多 AI 能力，包括代码补全、Bug 检测和性能分析。\n\n**生态建设**：开放更多 AI API 给开发者，降低 AI 应用开发的门槛。这对开发者社区是个好消息。",
+        time: "7小时前",
+        voteStatus: null
+      }
+    ]
   },
   {
     id: "4",
@@ -409,7 +418,16 @@ export const mockArticles: Article[] = [
     isDiscussed: false,
     imageUrl: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=400&fit=crop",
     type: "link",
-    originalUrl: "https://mobilityware.com/mobile-design-trends-2024"
+    originalUrl: "https://mobilityware.com/mobile-design-trends-2024",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "2024 年移动应用设计的几个关键趋势很值得关注：\n\n**微交互动画**：不仅仅是装饰，而是提升用户体验的关键。好的微交互能让用户更清楚地理解应用的反馈和状态变化。\n\n**AI 驱动个性化**：每个用户看到的内容、布局甚至交互方式都可以动态调整。这对提升用户留存率很有帮助。\n\n**增强现实（AR）**：已经从新鲜概念进化到实际应用阶段。电商、导航、家居等领域都在积极探索。\n\n**深色模式和无障碍**：从可选功能升级为必须考虑的设计要素。\n\n这些趋势背后的核心是：更加人性化、更加个性化、更加包容的设计理念。",
+        time: "17小时前",
+        voteStatus: null
+      }
+    ]
   },
   {
     id: "9",
@@ -441,7 +459,16 @@ export const mockArticles: Article[] = [
     isDiscussed: false,
     imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=400&fit=crop",
     type: "link",
-    originalUrl: "https://eeo.com.cn/esg-investment-practice"
+    originalUrl: "https://eeo.com.cn/esg-investment-practice",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "ESG 投资从一个新兴概念演变成了主流实践，值得深入了解：\n\n**环境（E）**：关注碳排放、可再生能源、资源利用效率。气候变化已经成为全球投资者的重点考量因素。\n\n**社会（S）**：涵盖员工权益、劳动条件、社区关系。好的企业文化和员工满意度往往与长期业绩正相关。\n\n**治理（G）**：董事会构成、薪酬透明度、反腐机制。这是企业长期健康发展的基础。\n\n**投资实践建议**：\n• 不应该简单地选择 ESG 高分股票，而是要理解行业特性\n• ESG 好不一定意味着财务回报好，需要综合分析\n• 持续关注企业的 ESG 实际表现，而不仅仅是报告数据\n\nESG 投资的核心是可持续性，长期来看更符合价值投资的理念。",
+        time: "5天前",
+        voteStatus: null
+      }
+    ]
   },
   {
     id: "11",
@@ -474,7 +501,16 @@ export const mockArticles: Article[] = [
     isDiscussed: false,
     imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=400&fit=crop",
     type: "link",
-    originalUrl: "https://juejin.cn/frontend-performance-guide"
+    originalUrl: "https://juejin.cn/frontend-performance-guide",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "前端性能优化是一个系统工程，需要从多个维度综合考虑：\n\n**代码分割（Code Splitting）**：\n• 按路由拆分，减少初始加载体积\n• 按功能拆分，按需加载\n• 分离第三方库和业务代码\n\n**缓存策略**：\n• 浏览器缓存：合理设置 Cache-Control、ETag\n• 应用级缓存：使用 Service Worker 和本地存储\n• CDN 缓存：静态资源部署到 CDN\n\n**渲染优化**：\n• 关键路径优化：内联关键 CSS，延迟加载非关键资源\n• 使用虚拟列表处理大数据量\n• 避免强制重排和重绘\n\n**监测和持续改进**：\n• 使用 Lighthouse、WebPageTest 定期检测\n• 建立性能基准和告警机制\n• Core Web Vitals 已成为搜索排名因素\n\n关键是要把性能作为一个持续的工程实践，而不是一次性的优化。",
+        time: "13天前",
+        voteStatus: null
+      }
+    ]
   },
   {
     id: "13",
@@ -506,7 +542,16 @@ export const mockArticles: Article[] = [
     isDiscussed: false,
     imageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=400&fit=crop",
     type: "link",
-    originalUrl: "https://mitkr.com/quantum-commerce-progress"
+    originalUrl: "https://mitkr.com/quantum-commerce-progress",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "量子计算从理论走向实践，近期进展确实令人鼓舞：\n\n**量子优势的实现**：Google 宣布在特定问题上实现量子优势，虽然实用性还有争议，但从科学验证的角度很重要。\n\n**错误纠正的突破**：量子计算的最大挑战是错误率。最近的进展表明，通过冗余和编码，可以在更大的系统中保持量子信息的稳定性。\n\n**商业应用探索**：\n• 药物发现和分子模拟\n• 金融风险建模\n• 优化问题求解\n• 机器学习加速\n\n**当前的现实困境**：\n• 量子比特数仍然有限（数百到数千级别）\n• 操作时间短，需要极低的温度环境\n• 实用应用还需要 5-10 年的发展\n\n量子计算的未来充满机遇，但不应过度乐观。现在更多的是产业摸索阶段，真正的革命可能还要等待。",
+        time: "20天前",
+        voteStatus: null
+      }
+    ]
   }
 ]
 

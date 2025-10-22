@@ -286,8 +286,6 @@ export default function ArticleList() {
                               {article.title}
                             </h3>
                             <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                              <span>{article.time}</span>
-                              <span>·</span>
                               <span>{article.source}</span>
                               {article.comments && countTotalComments(article.comments) > 0 && (
                                 <>
@@ -298,6 +296,8 @@ export default function ArticleList() {
                                   </div>
                                 </>
                               )}
+                              <span>·</span>
+                              <span>{article.time}</span>
                             </div>
                           </div>
 
