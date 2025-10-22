@@ -403,8 +403,6 @@ export default function ArticleList() {
                             </h3>
                             {/* 元信息行 - 来源 + 最新评论时间 */}
                             <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                              <span>{article.source}</span>
-                              <span>·</span>
                               {article.comments &&
                               article.comments.length > 0 ? (
                                 <span>
@@ -413,6 +411,8 @@ export default function ArticleList() {
                               ) : (
                                 <span>{article.time}</span>
                               )}
+                              <span>·</span>
+                              <span>{article.source}</span>
                             </div>
                           </div>
 
