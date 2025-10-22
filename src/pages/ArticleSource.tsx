@@ -3,8 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, MoreHorizontal, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, MessageCircle, X, Plus } from "lucide-react";
 import { mockArticles } from "@/data/mockArticles";
+import type { Comment } from "@/data/mockArticles";
+import { CommentTree } from "@/components/CommentTree";
 
 // 段落评论类型
 interface ParagraphComment {
@@ -37,6 +39,53 @@ export default function ArticleSource() {
   const [isCommentBarExpanded, setIsCommentBarExpanded] = useState(false);
   const commentBarRef = useRef<HTMLDivElement>(null);
 
+  // 文章评论状态
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState("");
+  const [isAddCommentOpen, setIsAddCommentOpen] = useState(false);
+
+  // 更新评论评分
+  const updateCommentScore = (commentsList: Comment[], commentId: string, direction: 'up' | 'down'): Comment[] => {
+    return commentsList.map(comment => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          score: (comment.score || 0) + (direction === 'up' ? 1 : -1)
+        };
+      } else if (comment.replies && comment.replies.length > 0) {
+        return {
+          ...comment,
+          replies: updateCommentScore(comment.replies, commentId, direction)
+        };
+      }
+      return comment;
+    });
+  };
+
+  // 保存评论到 localStorage
+  const saveCommentsToStorage = (updatedComments: Comment[]) => {
+    if (!id) return;
+
+    const existingArticles = localStorage.getItem("articles");
+    const storedArticles = existingArticles ? JSON.parse(existingArticles) : [];
+    const articleIndex = storedArticles.findIndex((a: any) => a.id === id);
+
+    if (articleIndex >= 0) {
+      storedArticles[articleIndex].comments = updatedComments;
+    } else {
+      // 如果没找到文章，可能是 mock 数据，保存为新文章
+      storedArticles.push({
+        ...article,
+        comments: updatedComments
+      });
+    }
+
+    localStorage.setItem("articles", JSON.stringify(storedArticles));
+
+    // 触发 storage 事件
+    window.dispatchEvent(new Event("storage"));
+  };
+
   // 找到对应的文章
   const findArticle = () => {
     const storedArticles = localStorage.getItem("articles");
@@ -50,7 +99,7 @@ export default function ArticleSource() {
 
   const article = findArticle();
 
-  // 初始化段落数据
+  // 初始化段落数据和文章评论
   useEffect(() => {
     if (article && id) {
       // 将文章内容拆分为段落
@@ -121,6 +170,35 @@ export default function ArticleSource() {
       }
 
       setParagraphs(initialParagraphs);
+
+      // 加载文章评论 (排除引用式评论)
+      const storedArticles = localStorage.getItem("articles");
+      if (storedArticles) {
+        const parsed = JSON.parse(storedArticles);
+        const foundArticle = parsed.find((a: any) => a.id === id);
+        if (foundArticle && foundArticle.comments) {
+          const articleComments = foundArticle.comments.filter((c: Comment) => !c.quotedText);
+          setComments(articleComments);
+        }
+      } else {
+        setComments(article?.comments?.filter((c: Comment) => !c.quotedText) || []);
+      }
+
+      // 监听 storage 事件
+      const handleStorageChange = () => {
+        const updatedArticles = localStorage.getItem("articles");
+        if (updatedArticles) {
+          const parsed = JSON.parse(updatedArticles);
+          const foundArticle = parsed.find((a: any) => a.id === id);
+          if (foundArticle && foundArticle.comments) {
+            const articleComments = foundArticle.comments.filter((c: Comment) => !c.quotedText);
+            setComments(articleComments);
+          }
+        }
+      };
+
+      window.addEventListener("storage", handleStorageChange);
+      return () => window.removeEventListener("storage", handleStorageChange);
     }
   }, [article, id]);
 
@@ -163,7 +241,7 @@ export default function ArticleSource() {
     }, 100);
   };
 
-  // 添加评论
+  // 添加段落评论
   const handleAddComment = () => {
     if (!newComment.trim() || !selectedParagraph || !id) return;
 
@@ -186,52 +264,6 @@ export default function ArticleSource() {
     const storageKey = `article-${id}-paragraph-comments`;
     localStorage.setItem(storageKey, JSON.stringify(updatedParagraphs));
 
-    // 同步到文章讨论区（引用式评论）
-    const currentParagraph = paragraphs.find((p) => p.id === selectedParagraph);
-    if (currentParagraph) {
-      // 创建引用式评论内容
-      const quotedComment = {
-        id: Date.now().toString(),
-        author: "我",
-        content: newComment,
-        time: "刚刚",
-        replies: [],
-        quotedText: currentParagraph.content, // 添加引用的段落内容
-      };
-
-      // 从 localStorage 读取文章数据
-      const existingArticles = localStorage.getItem("articles");
-      const storedArticles = existingArticles
-        ? JSON.parse(existingArticles)
-        : [];
-
-      // 查找并更新当前文章
-      const updatedArticles = storedArticles.map((article: any) => {
-        if (article.id === id) {
-          return {
-            ...article,
-            comments: [...(article.comments || []), quotedComment],
-          };
-        }
-        return article;
-      });
-
-      // 如果在 storedArticles 中没找到，尝试从 mockArticles 中找
-      const articleExists = updatedArticles.some((a: any) => a.id === id);
-      if (!articleExists && article) {
-        updatedArticles.push({
-          ...article,
-          comments: [...(article.comments || []), quotedComment],
-        });
-      }
-
-      // 保存更新后的文章数据
-      localStorage.setItem("articles", JSON.stringify(updatedArticles));
-
-      // 触发 storage 事件以通知其他页面更新
-      window.dispatchEvent(new Event("storage"));
-    }
-
     setNewComment("");
 
     // 评论成功后关闭评论栏
@@ -239,6 +271,156 @@ export default function ArticleSource() {
       setIsCommentBarExpanded(false);
       setSelectedParagraph(null);
     }, 500);
+  };
+
+  // 递归添加回复到评论树中
+  const addReplyToCommentTree = (comments: Comment[], parentId: string, reply: Comment): Comment[] => {
+    return comments.map(comment => {
+      if (comment.id === parentId) {
+        // 找到父评论，添加回复
+        return {
+          ...comment,
+          replies: [
+            ...(comment.replies || []),
+            reply // reply 已经包含正确的 depth
+          ]
+        };
+      } else if (comment.replies && comment.replies.length > 0) {
+        // 递归查找子评论中的父评论
+        return {
+          ...comment,
+          replies: addReplyToCommentTree(comment.replies, parentId, reply)
+        };
+      }
+      return comment;
+    });
+  };
+
+  // 添加文章讨论评论 (树状结构)
+  const handleAddArticleComment = (parentId?: string, content?: string) => {
+    const actualContent = content || commentText;
+    if (!actualContent?.trim()) return;
+
+    const isReply = !!parentId && !!content;
+
+    console.log('=== handleAddArticleComment ===');
+    console.log('parentId:', parentId);
+    console.log('isReply:', isReply);
+    console.log('current comments:', comments);
+
+    // 如果是回复，需要先找到父评论的深度
+    const getParentDepth = (comments: Comment[], targetParentId: string): number => {
+      for (const comment of comments) {
+        if (comment.id === targetParentId) {
+          return comment.depth !== undefined ? comment.depth : 0;
+        }
+        if (comment.replies && comment.replies.length > 0) {
+          const depth = getParentDepth(comment.replies, targetParentId);
+          if (depth >= 0) return depth;
+        }
+      }
+      return -1;
+    };
+
+    let parentDepth = 0;
+    if (isReply && parentId) {
+      // 先从当前状态中找
+      parentDepth = getParentDepth(comments, parentId);
+      console.log('parentDepth from current comments:', parentDepth);
+
+      // 如果没找到，从 localStorage 中找
+      if (parentDepth === -1) {
+        const storedArticles = localStorage.getItem("articles");
+        if (storedArticles) {
+          const parsed = JSON.parse(storedArticles);
+          const foundArticle = parsed.find((a: any) => a.id === id);
+          if (foundArticle && foundArticle.comments) {
+            parentDepth = getParentDepth(foundArticle.comments, parentId);
+            console.log('parentDepth from storage:', parentDepth);
+          }
+        }
+      }
+
+      // 如果还是没找到，设为 0
+      if (parentDepth === -1) {
+        console.log('parentDepth not found, setting to 0');
+        parentDepth = 0;
+      }
+    }
+
+    console.log('final parentDepth:', parentDepth);
+    console.log('new comment depth will be:', parentDepth + 1);
+
+    const newCommentObj: Comment = {
+      id: Date.now().toString(),
+      author: "我",
+      content: actualContent,
+      time: "刚刚",
+      score: 0,
+      parentId: isReply ? parentId : undefined,
+      depth: isReply ? parentDepth + 1 : 0, // 回复的深度为父评论深度+1
+    };
+
+    // 从 localStorage 读取文章数据
+    const existingArticles = localStorage.getItem("articles");
+    const storedArticles = existingArticles ? JSON.parse(existingArticles) : [];
+
+    let updatedComments: Comment[];
+
+    if (isReply) {
+      // 为现有评论添加回复 - 使用当前state而不是storage中的数据
+      console.log('Adding reply to tree, parentId:', parentId);
+      console.log('Current comments before adding:', JSON.stringify(comments, null, 2));
+
+      updatedComments = addReplyToCommentTree(
+        comments,  // 使用当前state
+        parentId,
+        newCommentObj
+      );
+
+      console.log('Updated comments after adding:', JSON.stringify(updatedComments, null, 2));
+
+      // 更新storage
+      const articleIndex = storedArticles.findIndex((a: any) => a.id === id);
+      if (articleIndex >= 0) {
+        storedArticles[articleIndex].comments = updatedComments;
+      } else {
+        storedArticles.push({
+          ...article,
+          comments: updatedComments
+        });
+      }
+    } else {
+      // 添加根评论
+      const articleIndex = storedArticles.findIndex((a: any) => a.id === id);
+      if (articleIndex >= 0) {
+        updatedComments = [
+          ...(storedArticles[articleIndex].comments || []),
+          newCommentObj
+        ];
+        storedArticles[articleIndex].comments = updatedComments;
+      } else {
+        updatedComments = [newCommentObj];
+        storedArticles.push({
+          ...article,
+          comments: updatedComments
+        });
+      }
+    }
+
+    // 保存更新后的文章数据
+    localStorage.setItem("articles", JSON.stringify(storedArticles));
+
+    // 更新本地状态
+    setComments(updatedComments);
+
+    if (!isReply) {
+      setCommentText("");
+      setIsAddCommentOpen(false);
+    }
+
+    // 触发 storage 事件以通知其他页面更新
+    window.dispatchEvent(new Event("storage"));
   };
 
   // 关闭评论栏
@@ -429,6 +611,95 @@ export default function ArticleSource() {
               ))}
             </div>
           </article>
+
+          {/* 讨论区 */}
+          <div className="px-6 pt-8 pb-4">
+            <div className="flex items-center gap-3 mb-6">
+              <MessageCircle className="w-5 h-5 text-gray-600" />
+              <h2 className="text-lg font-semibold text-gray-900">讨论 ({comments.length})</h2>
+            </div>
+
+            {/* 根评论输入框 - 固定位置 */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3 mb-3">
+                <Avatar className="h-8 w-8 mt-1">
+                  <AvatarFallback className="bg-gray-500 text-white text-sm">
+                    我
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  {isAddCommentOpen ? (
+                    <div className="space-y-3">
+                      <Input
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="分享你的观点..."
+                        className="text-sm"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleAddArticleComment();
+                          }
+                        }}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddArticleComment()}
+                          disabled={!commentText.trim()}
+                        >
+                          发表评论
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsAddCommentOpen(false);
+                            setCommentText('');
+                          }}
+                        >
+                          取消
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-gray-500 hover:text-gray-700 h-auto p-3"
+                      onClick={() => setIsAddCommentOpen(true)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      <span>发表评论...</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 评论列表 */}
+            {comments && comments.length > 0 && (
+              <CommentTree
+                comments={comments}
+                onReply={handleAddArticleComment}
+                onVote={(commentId: string, direction: 'up' | 'down') => {
+                  // 简单的投票实现
+                  const updatedComments = updateCommentScore(comments, commentId, direction);
+                  setComments(updatedComments);
+                  saveCommentsToStorage(updatedComments);
+                }}
+                articleId={id!}
+              />
+            )}
+
+            {/* 无评论时的提示 */}
+            {(!comments || comments.length === 0) && (
+              <div className="text-center py-8">
+                <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">还没有评论，来发表第一个观点吧！</p>
+              </div>
+            )}
+          </div>
 
           {/* 底部留白 - 根据评论栏状态调整 */}
           <div className={selectedParagraph ? "h-48" : "h-12"}></div>

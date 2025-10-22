@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ArrowLeft, MoreVertical, Trash2, Play, X, ExternalLink } from "lucide-react"
+import { ArrowLeft, MoreVertical, Trash2, Play, ExternalLink, Plus, MessageCircle } from "lucide-react"
 import type { Article, Comment } from "@/data/mockArticles"
 import { mockArticles } from "@/data/mockArticles"
+import { CommentTree } from "@/components/CommentTree"
 
 export default function ArticleDetail() {
   const navigate = useNavigate()
@@ -32,7 +33,21 @@ export default function ArticleDetail() {
   const [comments, setComments] = useState<Comment[]>(initialComments)
   const [newComment, setNewComment] = useState("")
   const [isMoreOpen, setIsMoreOpen] = useState(false)
-  const [replyingTo, setReplyingTo] = useState<{ id: string; author: string } | null>(null)
+  const [isAddCommentOpen, setIsAddCommentOpen] = useState(false)
+
+  // 递归查找父评论深度
+  const getParentDepth = (comments: Comment[], targetParentId: string): number => {
+    for (const comment of comments) {
+      if (comment.id === targetParentId) {
+        return comment.depth !== undefined ? comment.depth : 0
+      }
+      if (comment.replies && comment.replies.length > 0) {
+        const depth = getParentDepth(comment.replies, targetParentId)
+        if (depth >= 0) return depth
+      }
+    }
+    return -1
+  }
 
   // 递归查找并添加回复到指定评论
   const addReplyToComment = (comments: Comment[], targetId: string, newReply: Comment): Comment[] => {
@@ -54,36 +69,85 @@ export default function ArticleDetail() {
     })
   }
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return
-    
+  // 添加文章讨论评论 (树状结构)
+  const handleAddArticleComment = (parentId?: string, content?: string) => {
+    const actualContent = content || newComment
+    if (!actualContent?.trim()) return
+
+    const isReply = !!parentId && !!content
+
+    let parentDepth = 0
+    if (isReply && parentId) {
+      parentDepth = getParentDepth(comments, parentId)
+      if (parentDepth === -1) {
+        parentDepth = 0
+      }
+    }
+
     const newCommentObj: Comment = {
       id: Date.now().toString(),
       author: "我",
-      content: newComment,
+      content: actualContent,
       time: "刚刚",
-      replies: []
+      score: 0,
+      parentId: isReply ? parentId : undefined,
+      depth: isReply ? parentDepth + 1 : 0,
     }
-    
-    if (replyingTo) {
-      // 如果是回复某条评论，将新评论添加到该评论的replies中
-      const updatedComments = addReplyToComment(comments, replyingTo.id, newCommentObj)
-      setComments(updatedComments)
+
+    let updatedComments: Comment[]
+
+    if (isReply) {
+      updatedComments = addReplyToComment(comments, parentId, newCommentObj)
     } else {
-      // 如果不是回复，添加为一级评论
-      setComments([...comments, newCommentObj])
+      updatedComments = [...comments, newCommentObj]
     }
-    
-    setNewComment("")
-    setReplyingTo(null)
+
+    setComments(updatedComments)
+    saveCommentsToStorage(updatedComments)
+
+    if (!isReply) {
+      setNewComment("")
+      setIsAddCommentOpen(false)
+    }
   }
 
-  const handleReply = (commentId: string, author: string) => {
-    setReplyingTo({ id: commentId, author })
+  // 更新评论评分
+  const updateCommentScore = (commentsList: Comment[], commentId: string, direction: 'up' | 'down'): Comment[] => {
+    return commentsList.map(comment => {
+      if (comment.id === commentId) {
+        return {
+          ...comment,
+          score: (comment.score || 0) + (direction === 'up' ? 1 : -1)
+        }
+      } else if (comment.replies && comment.replies.length > 0) {
+        return {
+          ...comment,
+          replies: updateCommentScore(comment.replies, commentId, direction)
+        }
+      }
+      return comment
+    })
   }
 
-  const handleCancelReply = () => {
-    setReplyingTo(null)
+  // 保存评论到 localStorage
+  const saveCommentsToStorage = (updatedComments: Comment[]) => {
+    if (!id) return
+
+    const existingArticles = localStorage.getItem("articles")
+    const storedArticles = existingArticles ? JSON.parse(existingArticles) : []
+    const articleIndex = storedArticles.findIndex((a: any) => a.id === id)
+
+    if (articleIndex >= 0) {
+      storedArticles[articleIndex].comments = updatedComments
+    } else {
+      storedArticles.push({
+        ...article,
+        comments: updatedComments
+      })
+    }
+
+    localStorage.setItem("articles", JSON.stringify(storedArticles))
+    window.dispatchEvent(new Event("storage"))
   }
 
   const handleDelete = () => {
@@ -258,177 +322,85 @@ export default function ArticleDetail() {
         <main className="flex-1 overflow-y-auto pb-24">
 
           {/* 讨论列表 */}
-          <div>
+          <div className="px-6">
             {comments.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-sm">
-                还没有讨论，来发表第一条讨论吧
+                <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p>还没有讨论，来发表第一条讨论吧</p>
               </div>
             ) : (
-              comments.map((comment, index) => (
-                <div key={comment.id} className={`${index > 0 ? 'border-t border-gray-100' : ''}`}>
-                  <div className="p-4 hover:bg-gray-50 transition-colors">
-                    {/* 讨论头部 */}
-                    <div className="flex items-center gap-2 mb-2">
-                      {comment.author === "Puzle" ? (
-                        <>
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="bg-blue-600 text-white text-xs">P</AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-medium text-blue-600">Puzle</span>
-                        </>
-                      ) : (
-                        <>
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="bg-gray-600 text-white text-xs">我</AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-medium text-gray-900">我</span>
-                        </>
-                      )}
-                      <span className="text-xs text-gray-400">{comment.time}</span>
-                    </div>
-
-                    {/* 引用内容（如果有） */}
-                    {comment.quotedText && (
-                      <div className="mb-3 relative">
-                        <div 
-                          onClick={() => navigate(`/article/${id}/source`)}
-                          className="bg-blue-50 border border-blue-200 rounded-lg p-3 pl-4 cursor-pointer hover:bg-blue-100 transition-colors"
-                        >
-                          <div className="absolute left-2 top-3 w-1 h-8 bg-blue-400 rounded-full"></div>
-                          <p className="text-xs text-blue-600 font-medium mb-1.5 pl-3 flex items-center gap-1">
-                            引用原文
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                          </p>
-                          <p className="text-sm text-gray-700 leading-relaxed line-clamp-3 pl-3">
-                            "{comment.quotedText}"
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 讨论内容 */}
-                    <div className="text-sm text-gray-700 whitespace-pre-line leading-relaxed mb-3">
-                      {comment.content}
-                    </div>
-
-                    {/* 讨论操作 */}
-                    <div className="flex items-center gap-4">
-                      <button 
-                        onClick={() => handleReply(comment.id, comment.author)}
-                        className="text-xs text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1"
-                      >
-                        <span>回复</span>
-                      </button>
-                    </div>
-
-                    {/* 二级回复 */}
-                    {comment.replies && comment.replies.length > 0 && (
-                      <div className="mt-3 ml-6 space-y-3">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="border-l-2 border-blue-100 pl-3">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              {reply.author === "Puzle" ? (
-                                <>
-                                  <Avatar className="h-5 w-5">
-                                    <AvatarFallback className="bg-blue-600 text-white text-[10px]">P</AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm font-medium text-blue-600">Puzle</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Avatar className="h-5 w-5">
-                                    <AvatarFallback className="bg-gray-600 text-white text-[10px]">我</AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm font-medium text-gray-900">我</span>
-                                </>
-                              )}
-                              <span className="text-xs text-gray-400">{reply.time}</span>
-                            </div>
-                            <div className="text-sm text-gray-700 whitespace-pre-line leading-relaxed mb-2">
-                              {reply.content}
-                            </div>
-                            {/* 回复操作 */}
-                            <button 
-                              onClick={() => handleReply(reply.id, reply.author)}
-                              className="text-xs text-gray-500 hover:text-blue-600 transition-colors"
-                            >
-                              回复
-                            </button>
-                            
-                            {/* 三级回复 */}
-                            {reply.replies && reply.replies.length > 0 && (
-                              <div className="mt-2 space-y-2">
-                                {reply.replies.map((subReply) => (
-                                  <div key={subReply.id} className="pl-6 border-l-2 border-gray-100">
-                                    <div className="flex items-center gap-2 mb-1.5">
-                                      {subReply.author === "Puzle" ? (
-                                        <>
-                                          <Avatar className="h-5 w-5">
-                                            <AvatarFallback className="bg-blue-600 text-white text-[10px]">P</AvatarFallback>
-                                          </Avatar>
-                                          <span className="text-sm font-medium text-blue-600">Puzle</span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Avatar className="h-5 w-5">
-                                            <AvatarFallback className="bg-gray-600 text-white text-[10px]">我</AvatarFallback>
-                                          </Avatar>
-                                          <span className="text-sm font-medium text-gray-900">我</span>
-                                        </>
-                                      )}
-                                      <span className="text-xs text-gray-400">{subReply.time}</span>
-                                    </div>
-                                    <div className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
-                                      {subReply.content}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
+              <CommentTree
+                comments={comments}
+                onReply={handleAddArticleComment}
+                onVote={(commentId: string, direction: 'up' | 'down') => {
+                  const updatedComments = updateCommentScore(comments, commentId, direction)
+                  setComments(updatedComments)
+                  saveCommentsToStorage(updatedComments)
+                }}
+                articleId={id!}
+              />
             )}
           </div>
         </main>
 
         {/* 底部讨论输入框 */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-          {replyingTo && (
-            <div className="mb-2 flex items-center justify-between bg-gray-50 px-3 py-2 rounded-md">
-              <span className="text-sm text-gray-600">
-                回复 <span className="font-medium text-blue-600">{replyingTo.author}</span>:
-              </span>
-              <button onClick={handleCancelReply} className="text-gray-400 hover:text-gray-600">
-                <X className="h-4 w-4" />
-              </button>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Avatar className="h-8 w-8 mt-1">
+                <AvatarFallback className="bg-gray-500 text-white text-sm">
+                  我
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                {isAddCommentOpen ? (
+                  <div className="space-y-3">
+                    <Input
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="分享你的观点..."
+                      className="text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault()
+                          handleAddArticleComment()
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddArticleComment()}
+                        disabled={!newComment.trim()}
+                        className="bg-gray-900 hover:bg-gray-800"
+                      >
+                        发表评论
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsAddCommentOpen(false)
+                          setNewComment('')
+                        }}
+                      >
+                        取消
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-gray-500 hover:text-gray-700 h-auto p-3"
+                    onClick={() => setIsAddCommentOpen(true)}
+                  >
+                    <Plus className="w-4 w-4 mr-2" />
+                    <span>发表评论...</span>
+                  </Button>
+                )}
+              </div>
             </div>
-          )}
-          <div className="flex items-center gap-2">
-            <Input
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder={replyingTo ? `回复 ${replyingTo.author}...` : "发表你的讨论..."}
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleAddComment()
-                }
-              }}
-            />
-            <Button
-              onClick={handleAddComment}
-              disabled={!newComment.trim()}
-              className="bg-gray-900 hover:bg-gray-800"
-            >
-              发送
-            </Button>
           </div>
         </div>
       </div>
