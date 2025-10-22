@@ -344,9 +344,7 @@ export default function ArticleList() {
             {sortedGroups.map((groupName, groupIndex) => (
               <div key={groupName}>
                 {/* 时间分组标题 */}
-                <h2 className="text-sm font-medium text-gray-500 mb-3 px-2">
-                  {groupName}
-                </h2>
+                <h2 className="text-sm text-gray-500 mb-3 px-2">{groupName}</h2>
 
                 {/* 该分组的文章列表 */}
                 <div>

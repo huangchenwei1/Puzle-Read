@@ -1,87 +1,121 @@
-import { useState, useRef } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ArrowLeft, MoreVertical, Trash2, Play, ExternalLink, MessageCircle } from "lucide-react"
-import type { Article, Comment } from "@/data/mockArticles"
-import { mockArticles } from "@/data/mockArticles"
-import { CommentTree } from "@/components/CommentTree"
+import { useState, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  ArrowLeft,
+  MoreVertical,
+  Trash2,
+  Play,
+  ExternalLink,
+  MessageCircle,
+} from "lucide-react";
+import type { Article, Comment } from "@/data/mockArticles";
+import { mockArticles } from "@/data/mockArticles";
+import { CommentTree } from "@/components/CommentTree";
+
+// 递归计算总评论数（包括嵌套回复）
+const countTotalComments = (comments?: Comment[]): number => {
+  if (!comments || comments.length === 0) return 0;
+
+  let total = comments.length;
+  comments.forEach((comment) => {
+    if (comment.replies) {
+      total += countTotalComments(comment.replies);
+    }
+  });
+  return total;
+};
 
 export default function ArticleDetail() {
-  const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
-  
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
   // 找到对应的文章 - 先从 localStorage 查找，再从 mockArticles 查找
   const findArticle = () => {
-    const storedArticles = localStorage.getItem("articles")
+    const storedArticles = localStorage.getItem("articles");
     if (storedArticles) {
-      const parsed = JSON.parse(storedArticles)
-      const found = parsed.find((a: Article) => a.id === id)
-      if (found) return found
+      const parsed = JSON.parse(storedArticles);
+      const found = parsed.find((a: Article) => a.id === id);
+      if (found) return found;
     }
-    return mockArticles.find(a => a.id === id)
-  }
-  
-  const article = findArticle()
-  
+    return mockArticles.find((a) => a.id === id);
+  };
+
+  const article = findArticle();
+
   // 加载文章的评论
-  const initialComments: Comment[] = article?.comments || []
-  
-  const [comments, setComments] = useState<Comment[]>(initialComments)
-  const [newComment, setNewComment] = useState("")
-  const [isMoreOpen, setIsMoreOpen] = useState(false)
-  const [isAddCommentOpen, setIsAddCommentOpen] = useState(false)
-  const [replyingTo, setReplyingTo] = useState<{ id: string; author: string; content: string } | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const initialComments: Comment[] = article?.comments || [];
+
+  const [comments, setComments] = useState<Comment[]>(initialComments);
+  const [newComment, setNewComment] = useState("");
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isAddCommentOpen, setIsAddCommentOpen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<{
+    id: string;
+    author: string;
+    content: string;
+  } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // 递归查找父评论深度
-  const getParentDepth = (comments: Comment[], targetParentId: string): number => {
+  const getParentDepth = (
+    comments: Comment[],
+    targetParentId: string,
+  ): number => {
     for (const comment of comments) {
       if (comment.id === targetParentId) {
-        return comment.depth !== undefined ? comment.depth : 0
+        return comment.depth !== undefined ? comment.depth : 0;
       }
       if (comment.replies && comment.replies.length > 0) {
-        const depth = getParentDepth(comment.replies, targetParentId)
-        if (depth >= 0) return depth
+        const depth = getParentDepth(comment.replies, targetParentId);
+        if (depth >= 0) return depth;
       }
     }
-    return -1
-  }
+    return -1;
+  };
 
   // 递归查找并添加回复到指定评论
-  const addReplyToComment = (comments: Comment[], targetId: string, newReply: Comment): Comment[] => {
-    return comments.map(comment => {
+  const addReplyToComment = (
+    comments: Comment[],
+    targetId: string,
+    newReply: Comment,
+  ): Comment[] => {
+    return comments.map((comment) => {
       if (comment.id === targetId) {
         // 找到目标评论，添加回复
         return {
           ...comment,
-          replies: [...(comment.replies || []), newReply]
-        }
+          replies: [...(comment.replies || []), newReply],
+        };
       } else if (comment.replies && comment.replies.length > 0) {
         // 递归查找子回复
         return {
           ...comment,
-          replies: addReplyToComment(comment.replies, targetId, newReply)
-        }
+          replies: addReplyToComment(comment.replies, targetId, newReply),
+        };
       }
-      return comment
-    })
-  }
+      return comment;
+    });
+  };
 
   // 添加文章讨论评论 (树状结构)
   const handleAddArticleComment = (parentId?: string, content?: string) => {
-    const actualContent = content || newComment
-    if (!actualContent?.trim()) return
+    const actualContent = content || newComment;
+    if (!actualContent?.trim()) return;
 
-    const isReply = !!parentId && !!content
+    const isReply = !!parentId && !!content;
 
-    let parentDepth = 0
+    let parentDepth = 0;
     if (isReply && parentId) {
-      parentDepth = getParentDepth(comments, parentId)
+      parentDepth = getParentDepth(comments, parentId);
       if (parentDepth === -1) {
-        parentDepth = 0
+        parentDepth = 0;
       }
     }
 
@@ -93,133 +127,147 @@ export default function ArticleDetail() {
       score: 0,
       parentId: isReply ? parentId : undefined,
       depth: isReply ? parentDepth + 1 : 0,
-    }
+    };
 
-    let updatedComments: Comment[]
+    let updatedComments: Comment[];
 
     if (isReply) {
-      updatedComments = addReplyToComment(comments, parentId, newCommentObj)
+      updatedComments = addReplyToComment(comments, parentId, newCommentObj);
     } else {
-      updatedComments = [...comments, newCommentObj]
+      updatedComments = [...comments, newCommentObj];
     }
 
-    setComments(updatedComments)
-    saveCommentsToStorage(updatedComments)
+    setComments(updatedComments);
+    saveCommentsToStorage(updatedComments);
 
     // 清空状态并退出激活状态
-    setNewComment("")
-    setIsAddCommentOpen(false)
-    setReplyingTo(null)
-  }
+    setNewComment("");
+    setIsAddCommentOpen(false);
+    setReplyingTo(null);
+  };
 
   // 递归查找评论对象
-  const findCommentById = (comments: Comment[], targetId: string): Comment | null => {
+  const findCommentById = (
+    comments: Comment[],
+    targetId: string,
+  ): Comment | null => {
     for (const comment of comments) {
       if (comment.id === targetId) {
-        return comment
+        return comment;
       }
       if (comment.replies && comment.replies.length > 0) {
-        const found = findCommentById(comment.replies, targetId)
-        if (found) return found
+        const found = findCommentById(comment.replies, targetId);
+        if (found) return found;
       }
     }
-    return null
-  }
+    return null;
+  };
 
   // 处理回复点击
   const handleReplyClick = (commentId: string, commentAuthor: string) => {
-    const targetComment = findCommentById(comments, commentId)
+    const targetComment = findCommentById(comments, commentId);
     if (targetComment) {
-      setReplyingTo({ id: commentId, author: commentAuthor, content: targetComment.content })
-      setIsAddCommentOpen(true)
+      setReplyingTo({
+        id: commentId,
+        author: commentAuthor,
+        content: targetComment.content,
+      });
+      setIsAddCommentOpen(true);
       // 延迟 focus 以确保 DOM 更新完成
       setTimeout(() => {
-        inputRef.current?.focus()
-      }, 0)
+        inputRef.current?.focus();
+      }, 0);
     }
-  }
+  };
 
   // 取消回复
   const handleCancelReply = () => {
-    setReplyingTo(null)
-    setNewComment("")
-  }
+    setReplyingTo(null);
+    setNewComment("");
+  };
 
   // 更新评论投票状态
-  const updateCommentVote = (commentsList: Comment[], commentId: string, direction: 'up' | 'down'): Comment[] => {
-    return commentsList.map(comment => {
+  const updateCommentVote = (
+    commentsList: Comment[],
+    commentId: string,
+    direction: "up" | "down",
+  ): Comment[] => {
+    return commentsList.map((comment) => {
       if (comment.id === commentId) {
-        const currentVote = comment.voteStatus
-        let newVoteStatus: 'up' | 'down' | null = direction
+        const currentVote = comment.voteStatus;
+        let newVoteStatus: "up" | "down" | null = direction;
 
         // 如果点击的是当前已选的按钮，则取消投票
         if (currentVote === direction) {
-          newVoteStatus = null
+          newVoteStatus = null;
         }
 
         return {
           ...comment,
-          voteStatus: newVoteStatus
-        }
+          voteStatus: newVoteStatus,
+        };
       } else if (comment.replies && comment.replies.length > 0) {
         return {
           ...comment,
-          replies: updateCommentVote(comment.replies, commentId, direction)
-        }
+          replies: updateCommentVote(comment.replies, commentId, direction),
+        };
       }
-      return comment
-    })
-  }
+      return comment;
+    });
+  };
 
   // 删除评论
-  const deleteComment = (commentsList: Comment[], commentId: string): Comment[] => {
+  const deleteComment = (
+    commentsList: Comment[],
+    commentId: string,
+  ): Comment[] => {
     return commentsList
-      .filter(comment => comment.id !== commentId)
-      .map(comment => {
+      .filter((comment) => comment.id !== commentId)
+      .map((comment) => {
         if (comment.replies && comment.replies.length > 0) {
           return {
             ...comment,
-            replies: deleteComment(comment.replies, commentId)
-          }
+            replies: deleteComment(comment.replies, commentId),
+          };
         }
-        return comment
-      })
-  }
+        return comment;
+      });
+  };
 
   // 保存评论到 localStorage
   const saveCommentsToStorage = (updatedComments: Comment[]) => {
-    if (!id) return
+    if (!id) return;
 
-    const existingArticles = localStorage.getItem("articles")
-    const storedArticles = existingArticles ? JSON.parse(existingArticles) : []
-    const articleIndex = storedArticles.findIndex((a: any) => a.id === id)
+    const existingArticles = localStorage.getItem("articles");
+    const storedArticles = existingArticles ? JSON.parse(existingArticles) : [];
+    const articleIndex = storedArticles.findIndex((a: any) => a.id === id);
 
     if (articleIndex >= 0) {
-      storedArticles[articleIndex].comments = updatedComments
+      storedArticles[articleIndex].comments = updatedComments;
     } else {
       storedArticles.push({
         ...article,
-        comments: updatedComments
-      })
+        comments: updatedComments,
+      });
     }
 
-    localStorage.setItem("articles", JSON.stringify(storedArticles))
-    window.dispatchEvent(new Event("storage"))
-  }
+    localStorage.setItem("articles", JSON.stringify(storedArticles));
+    window.dispatchEvent(new Event("storage"));
+  };
 
   const handleDelete = () => {
-    setIsMoreOpen(false)
+    setIsMoreOpen(false);
     if (confirm("确认删除这篇文章吗？")) {
-      navigate(-1)
+      navigate(-1);
     }
-  }
+  };
 
   if (!article) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">文章不存在</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -238,9 +286,16 @@ export default function ArticleDetail() {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-lg font-semibold text-gray-900">详情</h1>
+              <h3 className="text-lg font-semibold text-gray-900">
+                评论
+                {comments.length > 0 && (
+                  <span className="ml-2 text-gray-400 text-sm font-normal">
+                    {countTotalComments(comments)}
+                  </span>
+                )}
+              </h3>
             </div>
-            
+
             <Popover open={isMoreOpen} onOpenChange={setIsMoreOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -267,117 +322,66 @@ export default function ArticleDetail() {
           </div>
         </header>
 
-        {/* 文章卡片 */}
-        <div className="p-4 border-b border-gray-100">
-          <Card className="border-gray-200">
-            {/* 媒体类型卡片 - 顶部大图/视频 */}
-            {article.type === "media" && article.imageUrl && (
-              <div className="px-6 pt-6">
-                <div className="w-full h-48 rounded-lg overflow-hidden bg-gray-100 relative">
-                  <img
-                    src={article.imageUrl}
-                    alt={article.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* 视频播放按钮 */}
-                  {article.mediaType === "video" && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-sm hover:bg-black/80 transition-colors">
-                        <Play className="w-8 h-8 text-white fill-white ml-1" />
-                      </div>
+        {/* 文章卡片 - 列表样式 */}
+        <div
+          className="border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors py-4 px-6"
+          onClick={() => navigate(`/article/${id}/source`)}
+        >
+          {/* 媒体类型卡片 - 顶部小图 */}
+          {article.type === "media" && article.imageUrl && (
+            <div className="mb-3">
+              <div className="w-full overflow-hidden bg-gray-100 relative">
+                <img
+                  src={article.imageUrl}
+                  alt={article.title}
+                  className="w-full h-full object-cover"
+                />
+                {/* 视频播放按钮 */}
+                {article.mediaType === "video" && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                      <Play className="w-3 h-3 text-white fill-white ml-0.5" />
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <CardHeader className="pb-3">
-              {/* 链接类型卡片 - 文本/图文混排 */}
-              {article.type === "link" && (
-                <>
-                  {article.imageUrl ? (
-                    // 有图片：图文混排（右侧小缩略图）
-                    <div className="flex gap-3">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
-                          {article.title}
-                        </CardTitle>
-                        <CardDescription className="text-sm text-gray-500 line-clamp-2">
-                          {article.content}
-                        </CardDescription>
-                      </div>
-                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                        <img
-                          src={article.imageUrl}
-                          alt={article.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    // 无图片：纯文本
-                    <div>
-                      <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
-                        {article.title}
-                      </CardTitle>
-                      <CardDescription className="text-sm text-gray-500 line-clamp-3">
-                        {article.content}
-                      </CardDescription>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* 文章类型卡片 - 纯文本 */}
-              {article.type === "article" && (
-                <div>
-                  <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
-                    {article.title}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-gray-500 line-clamp-3">
-                    {article.content}
-                  </CardDescription>
-                </div>
-              )}
-
-              {/* 媒体类型卡片 - 文本信息 */}
-              {article.type === "media" && (
-                <div>
-                  <CardTitle className="text-base font-medium text-gray-900 line-clamp-2 mb-2">
-                    {article.title}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-gray-500 line-clamp-2">
-                    {article.content}
-                  </CardDescription>
-                </div>
-              )}
-            </CardHeader>
-            
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span>{article.time}</span>
-                  <span>·</span>
-                  <span>{article.source}</span>
-                </div>
-                {/* 原文链接按钮 */}
-                {article.originalUrl && (
-                  <button
-                    onClick={() => navigate(`/article/${id}/source`)}
-                    className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-700 transition-colors"
-                  >
-                    <span>查看原文</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
+                  </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
+
+          <div className="flex justify-between items-start gap-3">
+            {/* 左侧：标题和元信息（垂直排列） */}
+            <div className="flex-1 min-w-0">
+              {/* 标题行 - 标题 + 外链icon（紧跟在标题后） */}
+              <h3 className="text-base font-medium text-gray-900 line-clamp-2 mb-1.5">
+                {article.title}
+                {article.originalUrl && (
+                  <ExternalLink className="w-4 h-4 text-gray-400 ml-1 inline align-text-middle" />
+                )}
+              </h3>
+
+              {/* 元信息行 - 来源 + 发布时间 */}
+              <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <span>{article.source}</span>
+                <span>·</span>
+                <span>发布于{article.time}</span>
+              </div>
+            </div>
+
+            {/* 右侧：预览图 */}
+            {article.imageUrl && article.type !== "media" && (
+              <div className="w-12 h-12 overflow-hidden bg-gray-100 shrink-0 flex-shrink-0">
+                <img
+                  src={article.imageUrl}
+                  alt={article.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 讨论区 */}
         <main className="flex-1 overflow-y-auto pb-24">
-
           {/* 讨论列表 */}
           <div className="px-6">
             {comments.length === 0 ? (
@@ -390,15 +394,19 @@ export default function ArticleDetail() {
                 comments={comments}
                 onReply={handleAddArticleComment}
                 onReplyClick={handleReplyClick}
-                onVote={(commentId: string, direction: 'up' | 'down') => {
-                  const updatedComments = updateCommentVote(comments, commentId, direction)
-                  setComments(updatedComments)
-                  saveCommentsToStorage(updatedComments)
+                onVote={(commentId: string, direction: "up" | "down") => {
+                  const updatedComments = updateCommentVote(
+                    comments,
+                    commentId,
+                    direction,
+                  );
+                  setComments(updatedComments);
+                  saveCommentsToStorage(updatedComments);
                 }}
                 onDelete={(commentId: string) => {
-                  const updatedComments = deleteComment(comments, commentId)
-                  setComments(updatedComments)
-                  saveCommentsToStorage(updatedComments)
+                  const updatedComments = deleteComment(comments, commentId);
+                  setComments(updatedComments);
+                  saveCommentsToStorage(updatedComments);
                 }}
                 articleId={id!}
               />
@@ -431,12 +439,12 @@ export default function ArticleDetail() {
               placeholder={replyingTo ? "写下你的回复..." : "分享你的观点..."}
               className="text-sm"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
                   if (replyingTo) {
-                    handleAddArticleComment(replyingTo.id, newComment)
+                    handleAddArticleComment(replyingTo.id, newComment);
                   } else {
-                    handleAddArticleComment()
+                    handleAddArticleComment();
                   }
                 }
               }}
@@ -448,9 +456,9 @@ export default function ArticleDetail() {
                   size="sm"
                   onClick={() => {
                     if (replyingTo) {
-                      handleAddArticleComment(replyingTo.id, newComment)
+                      handleAddArticleComment(replyingTo.id, newComment);
                     } else {
-                      handleAddArticleComment()
+                      handleAddArticleComment();
                     }
                   }}
                   disabled={!newComment.trim()}
@@ -462,8 +470,8 @@ export default function ArticleDetail() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setIsAddCommentOpen(false)
-                    handleCancelReply()
+                    setIsAddCommentOpen(false);
+                    handleCancelReply();
                   }}
                 >
                   取消
@@ -474,5 +482,5 @@ export default function ArticleDetail() {
         </div>
       </div>
     </div>
-  )
+  );
 }
