@@ -59,25 +59,12 @@ export const mockArticles: Article[] = [
       },
       {
         id: "c2",
-        author: "张三",
-        content: "多模态能力这块确实很有想象空间，特别是对内容创作者来说",
-        time: "55分钟前",
-      },
-      {
-        id: "c3",
         author: "我",
         content: "实时语音对话的功能确实很震撼！延迟这么低真的太厉害了",
         time: "50分钟前",
         replies: [
           {
-            id: "c3-r1",
-            author: "李四",
-            content:
-              "同意！这意味着我们可以像正常聊天一样和AI互动，体验会好很多",
-            time: "45分钟前",
-          },
-          {
-            id: "c3-r2",
+            id: "c2-r1",
             author: "Puzle",
             content:
               "是的，实时语音交互确实是个技术突破。从技术角度看，这背后涉及几个核心创新：\n\n• **低延迟响应**：从输入到输出的延迟降到毫秒级，接近真实对话的节奏\n• **情感理解**：能识别语气中的情绪变化，做出更贴切的回应\n• **上下文连贯**：保持长对话的语境理解，不会频繁失忆\n\n这让AI对话从一问一答变成了真正的交流体验。",
@@ -85,47 +72,51 @@ export const mockArticles: Article[] = [
             voteStatus: null,
             replies: [
               {
-                id: "c3-r2-r1",
+                id: "c2-r1-r1",
                 author: "我",
                 content: "那延迟具体能做到多少毫秒？比人类反应快吗？",
                 time: "38分钟前",
-              },
-              {
-                id: "c3-r2-r2",
-                author: "王五",
-                content:
-                  "这个技术应用到教育领域会很有意思，可以做个智能家教系统",
-                time: "35分钟前",
+                replies: [
+                  {
+                    id: "c2-r1-r1-r1",
+                    author: "Puzle",
+                    content: "通常在 200-500 毫秒左右，相比人类的 300-400 毫秒反应时间已经很接近。这个延迟主要来自语音识别、模型推理和语音合成三个环节。",
+                    time: "35分钟前",
+                    voteStatus: null,
+                  },
+                ],
               },
             ],
           },
         ],
       },
       {
-        id: "c4",
-        author: "赵六",
-        content: "有没有考虑成本问题？这种模型的计算量应该很大",
-        time: "40分钟前",
+        id: "c3",
+        author: "我",
+        content: "这次发布会的技术突破确实令人印象深刻，特别是多模态能力的实现。",
+        time: "45分钟前",
         replies: [
           {
-            id: "c4-r1",
+            id: "c3-r1",
             author: "Puzle",
-            content:
-              "这是个很好的问题。成本优化确实是大模型商用的关键瓶颈：\n\n**推理优化**：通过量化、剪枝等技术降低计算量\n**边缘计算**：部分模型部署到本地，减少云端调用\n**分级服务**：提供不同能力的模型版本，适应不同场景和成本预算\n\n当然，短期内成本还是会比较高，但随着技术进步和规模化应用，成本曲线会快速下降。",
-            time: "35分钟前",
+            content: "同意。多模态能力是当前AI发展的重要方向，能够更好地理解和生成复杂的信息形式。这为未来的应用创新提供了坚实的基础。",
+            time: "40分钟前",
             voteStatus: null,
             replies: [
               {
-                id: "c4-r1-r1",
+                id: "c3-r1-r1",
                 author: "我",
-                content: "明白了，感谢专业的解答！",
-                time: "32分钟前",
-              },
-              {
-                id: "c4-r1-r2",
-                author: "赵六",
-                content: "有道理，期待成本下来之后的普及",
-                time: "30分钟前",
+                content: "期待看到更多基于这项技术的创新应用！",
+                time: "37分钟前",
+                replies: [
+                  {
+                    id: "c3-r1-r1-r1",
+                    author: "Puzle",
+                    content: "是的，我们应该很快就能看到相关应用在各个领域落地。从教育到内容创作，从医疗诊断到专业分析，都会有很多创新空间。",
+                    time: "33分钟前",
+                    voteStatus: null,
+                  },
+                ],
               },
             ],
           },
@@ -157,25 +148,13 @@ export const mockArticles: Article[] = [
       },
       {
         id: "c2",
-        author: "陈可",
-        content: "我已经用这个方法提升了30%的工作效率，强烈推荐！",
-        time: "3.5小时前",
-      },
-      {
-        id: "c3",
         author: "我",
         content:
           "太实用了！我之前一直不知道怎么写好提示词，按照文章的方法试了一下，效果确实好很多。",
         time: "3小时前",
         replies: [
           {
-            id: "c3-r1",
-            author: "杜海",
-            content: "具体提升了多少效率呢？我也想试试",
-            time: "2.8小时前",
-          },
-          {
-            id: "c3-r2",
+            id: "c2-r1",
             author: "Puzle",
             content:
               '提示词设计确实需要不断练习和迭代。根据我的观察，掌握这些技巧后通常能获得 2-3 倍的效率提升：\n\n**具体化描述**：避免模糊表达，明确告诉AI你需要什么格式、风格、长度。比如说"总结"和"用300字总结成中学生能理解的语言"效果完全不同\n\n**示例引导**：提供1-2个样例，让AI理解你的期望输出。这比长篇描述更有效\n\n**角色设定**：给AI一个明确角色（如专家、导师），会得到更专业的回答\n\n**迭代优化**：首次输出不满意就追问，引导AI逐步改进\n\n多实践，你会逐渐建立起自己的提示词模式库。',
@@ -183,35 +162,32 @@ export const mockArticles: Article[] = [
             voteStatus: null,
             replies: [
               {
-                id: "c3-r2-r1",
+                id: "c2-r1-r1",
                 author: "我",
                 content: "具体化描述和示例引导这两点最有帮助，我现在每次都用",
                 time: "2小时前",
-              },
-              {
-                id: "c3-r2-r2",
-                author: "杜海",
-                content: "谢谢！我也要开始记录一些好的提示词了",
-                time: "1.8小时前",
-              },
-              {
-                id: "c3-r2-r3",
-                author: "何晓",
-                content: "这些技巧对做内容创作特别有用，我已经在用了",
-                time: "1.5小时前",
+                replies: [
+                  {
+                    id: "c2-r1-r1-r1",
+                    author: "Puzle",
+                    content: "很高兴你已经掌握了这些关键技巧。持续地在实践中优化提示词策略，会让效果越来越好。记录那些特别有效的提示词很重要。",
+                    time: "1.8小时前",
+                    voteStatus: null,
+                  },
+                ],
               },
             ],
           },
         ],
       },
       {
-        id: "c4",
+        id: "c3",
         author: "我",
         content: "提示词库这个想法不错，我准备用Notion建一个",
         time: "2小时前",
         replies: [
           {
-            id: "c4-r1",
+            id: "c3-r1",
             author: "Puzle",
             content:
               "Notion确实很适合做提示词管理。建议的组织结构：\n\n**按场景分类**：\n• 写作类：文章大纲、内容扩写、润色修改\n• 代码类：调试分析、代码重构、文档生成\n• 分析类：数据解读、市场研究、竞品分析\n• 创意类：头脑风暴、方案设计、营销文案\n\n**每个提示词记录**：\n• 适用场景和目标\n• 完整的提示词模板\n• 实际效果示例\n• 优化迭代记录\n\n这样建立的知识库会越用越好用。",
@@ -219,25 +195,19 @@ export const mockArticles: Article[] = [
             voteStatus: null,
             replies: [
               {
-                id: "c4-r1-r1",
+                id: "c3-r1-r1",
                 author: "我",
                 content: "好详细，马上开始整理！",
                 time: "1小时前",
-              },
-              {
-                id: "c4-r1-r2",
-                author: "林芳",
-                content:
-                  "我之前用 Excel 存提示词，现在打算迁移到 Notion，有现成的模板吗？",
-                time: "58分钟前",
-              },
-              {
-                id: "c4-r1-r3",
-                author: "Puzle",
-                content:
-                  "模板的话可以在 Notion 社区里找到一些不错的。但我建议根据自己的工作流程定制：\n\n1. **复制 Notion 官方模板作为基础**\n2. **增加自己需要的字段**（如效果评分、适用工具等）\n3. **定期回顾和优化**（什么提示词最有效，定期整理）\n\n好的知识库是逐步打磨出来的，不用完美，但要实用。",
-                time: "55分钟前",
-                voteStatus: null,
+                replies: [
+                  {
+                    id: "c3-r1-r1-r1",
+                    author: "Puzle",
+                    content: "开始建立的时候可以先建一个基础的框架，然后逐步丰富内容。不需要一开始就完美，重要的是持续积累和优化。",
+                    time: "58分钟前",
+                    voteStatus: null,
+                  },
+                ],
               },
             ],
           },
@@ -267,8 +237,34 @@ export const mockArticles: Article[] = [
       {
         id: "c2",
         author: "我",
-        content: "作为入门教程写得很详细",
+        content: "作为入门教程写得很详细，特别是学习路径的建议很有帮助",
         time: "4天前",
+        replies: [
+          {
+            id: "c2-r1",
+            author: "Puzle",
+            content: "很高兴你觉得有帮助。学习深度学习的关键确实是要理论和实践并行。建议在学习过程中不断写代码、做项目，这样可以加深理解。",
+            time: "3.8天前",
+            voteStatus: null,
+            replies: [
+              {
+                id: "c2-r1-r1",
+                author: "我",
+                content: "确实，我准备从简单的分类问题开始练习",
+                time: "3.5天前",
+                replies: [
+                  {
+                    id: "c2-r1-r1-r1",
+                    author: "Puzle",
+                    content: "好主意。从简单的分类问题（如MNIST手写数字识别）开始是个不错的选择。这样可以完整地走一遍整个建模流程：数据准备、模型设计、训练、评估和优化。",
+                    time: "3.2天前",
+                    voteStatus: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     ],
   },
@@ -299,19 +295,11 @@ export const mockArticles: Article[] = [
       {
         id: "c2",
         author: "我",
-        content: "会议纪要自动化这个太实用了！",
-        time: "18小时前",
-        quotedText:
-          "Notion 宣布推出 AI 协作助手，可以自动生成会议纪要、整理文档结构，并提供智能写作建议...",
-      },
-      {
-        id: "c3",
-        author: "我",
         content: "我们团队正在用 Notion，等不及要试试这个功能了",
         time: "15小时前",
         replies: [
           {
-            id: "c3-r1",
+            id: "c2-r1",
             author: "Puzle",
             content:
               "如果你们团队已经在用 Notion，这次更新确实很值得期待。几个实用建议：\n\n**会议场景优化**：\n• 提前准备会议大纲模板，AI 会按照你的结构生成纪要\n• 录音时注意环境噪音，影响转写质量\n• 会后立即生成纪要并分享，趁记忆清晰时补充细节\n\n**文档协作技巧**：\n• 建立团队知识库，AI 会学习你们的表达习惯\n• 使用统一的标签和分类，方便 AI 理解上下文\n• 让 AI 帮忙整理散乱的想法，但关键决策还是要人来把关\n\n**成本考量**：AI 功能通常需要额外付费，评估一下团队规模和使用频率，算算 ROI 是否划算。如果能节省大量重复劳动，还是很值的。",
@@ -319,10 +307,19 @@ export const mockArticles: Article[] = [
             voteStatus: null,
             replies: [
               {
-                id: "c3-r1-r1",
+                id: "c2-r1-r1",
                 author: "我",
                 content: "成本这块确实要考虑，我先申请试用看看效果",
                 time: "10小时前",
+                replies: [
+                  {
+                    id: "c2-r1-r1-r1",
+                    author: "Puzle",
+                    content: "好主意。先通过试用期了解实际效果，再决定是否付费升级。这样可以避免投入后才发现不适合。",
+                    time: "8小时前",
+                    voteStatus: null,
+                  },
+                ],
               },
             ],
           },
@@ -439,6 +436,32 @@ export const mockArticles: Article[] = [
         author: "我",
         content: "异步沟通规范很重要，但怎么把握好度和响应速度",
         time: "9小时前",
+        replies: [
+          {
+            id: "c2-r1",
+            author: "Puzle",
+            content: "这是个很好的问题。异步沟通需要在效率和实时反馈之间找到平衡。通常的做法是：\n\n**关键决策**：立即回复（1小时内）\n**普通问题**：工作日内回复（4小时内）\n**非紧急任务**：可以延迟回复（24小时内）\n\n关键是要明确沟通优先级并和团队达成共识。",
+            time: "8.5小时前",
+            voteStatus: null,
+            replies: [
+              {
+                id: "c2-r1-r1",
+                author: "我",
+                content: "这个优先级划分很清晰，我们团队可以参考这个模式",
+                time: "8小时前",
+                replies: [
+                  {
+                    id: "c2-r1-r1-r1",
+                    author: "Puzle",
+                    content: "很高兴能帮上忙。可以先在团队内部试点，根据实际情况调整这些时间标准。重要的是团队对沟通规范的认同和执行。",
+                    time: "7.5小时前",
+                    voteStatus: null,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
     ],
   },

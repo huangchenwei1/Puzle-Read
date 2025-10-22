@@ -679,6 +679,9 @@ export default function ArticleSource() {
               <CommentTree
                 comments={comments}
                 onReply={handleAddArticleComment}
+                onReplyClick={(_commentId: string, _commentAuthor: string) => {
+                  // Handle reply click if needed for ArticleSource page
+                }}
                 onVote={(commentId: string, direction: 'up' | 'down') => {
                   // 简单的投票实现
                   const updatedComments = updateCommentScore(comments, commentId, direction);

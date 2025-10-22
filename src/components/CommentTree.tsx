@@ -42,7 +42,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
 }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
-  const [showNested, setShowNested] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -86,8 +85,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
     if (!comment.replies || comment.replies.length === 0) return 0;
     return comment.replies.length + comment.replies.reduce((sum, reply) => sum + getTotalReplies(reply), 0);
   };
-
-  const totalReplies = getTotalReplies(comment);
 
   return (
     <div
@@ -234,7 +231,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
       </div>
 
       {/* 子评论 */}
-      {comment.replies && comment.replies.length > 0 && showNested && (
+      {comment.replies && comment.replies.length > 0 && (
         <div className="mt-0">
           {comment.replies.map((reply) => (
             <CommentItem
