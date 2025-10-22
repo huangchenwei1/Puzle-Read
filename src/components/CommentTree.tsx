@@ -63,6 +63,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
   const totalReplies = getTotalReplies(comment);
 
+  // 处理投票按钮点击
+  const handleVoteClick = (direction: 'up' | 'down') => {
+    const newVoteStatus = comment.voteStatus === direction ? null : direction;
+    // 这里需要更新 comment.voteStatus，但由于是 props，实际更新应该通过父组件处理
+    onVote(comment.id, direction);
+  };
+
   console.log(`Comment ${comment.id} depth: ${depth}, indentLeft: ${indentLeft}px`);
 
   return (
@@ -77,43 +84,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
 
       {/* 评论主体 */}
       <div className="flex gap-2 py-2 bg-white rounded-lg">
-        {/* 投票区域 */}
-        <div className="flex flex-col items-center gap-1 pr-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 hover:bg-gray-100"
-            onClick={() => onVote(comment.id, 'up')}
-          >
-            <ThumbsUp className="h-3 w-3" />
-          </Button>
-          <span className="text-xs font-medium text-gray-600 min-w-0">
-            {comment.score || 0}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 hover:bg-gray-100"
-            onClick={() => onVote(comment.id, 'down')}
-          >
-            <ThumbsDown className="h-3 w-3" />
-          </Button>
-          {totalReplies > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 hover:bg-gray-100 mt-1"
-              onClick={() => setShowNested(!showNested)}
-            >
-              {showNested ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )}
-            </Button>
-          )}
-        </div>
-
         {/* 评论内容 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -153,8 +123,66 @@ const CommentItem: React.FC<CommentItemProps> = ({
             {comment.content}
           </div>
 
-          {/* 操作按钮 */}
+          {/* 操作按钮和投票区域 */}
           <div className="flex items-center gap-4 text-xs">
+            {/* 状态1：无操作，显示赞和踩两按钮 */}
+            {comment.voteStatus === null && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-gray-100"
+                  onClick={() => onVote(comment.id, 'up')}
+                >
+                  <ThumbsUp className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-gray-100"
+                  onClick={() => onVote(comment.id, 'down')}
+                >
+                  <ThumbsDown className="h-3 w-3" />
+                </Button>
+                <span className="text-gray-300">|</span>
+              </>
+            )}
+
+            {/* 状态2：已赞，只显示已赞的按钮 */}
+            {comment.voteStatus === 'up' && (
+              <>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 bg-blue-100 text-blue-600 hover:bg-blue-200"
+                    onClick={() => onVote(comment.id, 'up')}
+                  >
+                    <ThumbsUp className="h-3 w-3" />
+                  </Button>
+                  <span className="text-xs text-blue-600">已赞</span>
+                </div>
+                <span className="text-gray-300">|</span>
+              </>
+            )}
+
+            {/* 状态3：已踩，只显示已踩的按钮 */}
+            {comment.voteStatus === 'down' && (
+              <>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 bg-red-100 text-red-600 hover:bg-red-200"
+                    onClick={() => onVote(comment.id, 'down')}
+                  >
+                    <ThumbsDown className="h-3 w-3" />
+                  </Button>
+                  <span className="text-xs text-red-600">已踩</span>
+                </div>
+                <span className="text-gray-300">|</span>
+              </>
+            )}
             <Button
               variant="ghost"
               size="sm"

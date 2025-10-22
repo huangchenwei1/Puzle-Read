@@ -111,18 +111,26 @@ export default function ArticleDetail() {
     }
   }
 
-  // 更新评论评分
-  const updateCommentScore = (commentsList: Comment[], commentId: string, direction: 'up' | 'down'): Comment[] => {
+  // 更新评论投票状态
+  const updateCommentVote = (commentsList: Comment[], commentId: string, direction: 'up' | 'down'): Comment[] => {
     return commentsList.map(comment => {
       if (comment.id === commentId) {
+        const currentVote = comment.voteStatus
+        let newVoteStatus: 'up' | 'down' | null = direction
+
+        // 如果点击的是当前已选的按钮，则取消投票
+        if (currentVote === direction) {
+          newVoteStatus = null
+        }
+
         return {
           ...comment,
-          score: (comment.score || 0) + (direction === 'up' ? 1 : -1)
+          voteStatus: newVoteStatus
         }
       } else if (comment.replies && comment.replies.length > 0) {
         return {
           ...comment,
-          replies: updateCommentScore(comment.replies, commentId, direction)
+          replies: updateCommentVote(comment.replies, commentId, direction)
         }
       }
       return comment
@@ -333,7 +341,7 @@ export default function ArticleDetail() {
                 comments={comments}
                 onReply={handleAddArticleComment}
                 onVote={(commentId: string, direction: 'up' | 'down') => {
-                  const updatedComments = updateCommentScore(comments, commentId, direction)
+                  const updatedComments = updateCommentVote(comments, commentId, direction)
                   setComments(updatedComments)
                   saveCommentsToStorage(updatedComments)
                 }}

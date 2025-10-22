@@ -6,7 +6,8 @@ export interface Comment {
   time: string
   parentId?: string  // 父评论ID，用于树状结构
   depth?: number    // 嵌套深度，用于UI渲染
-  score?: number    // 评论评分
+  score?: number    // 评论评分（可选，用于兼容性）
+  voteStatus?: 'up' | 'down' | null  // 投票状态：无操作、已赞、已踩
   replies?: Comment[]
   quotedText?: string  // 引用的段落内容（用于原文页的段落评论）
 }
