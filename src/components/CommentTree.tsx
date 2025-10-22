@@ -79,7 +79,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   };
 
   const depth = comment.depth || 0;
-  const indentLeft = depth * 12; // 12px 每层缩进（约一个字宽度）
+  const indentLeft = depth > 0 ? 24 : 0; // 只增加一层的缩进 (24px)
 
   // 递归计数所有子评论数量
   const getTotalReplies = (comment: Comment): number => {
@@ -162,11 +162,14 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   variant="ghost"
                   size="sm"
                   className="h-4 px-0.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                  onClick={() => onVote(comment.id, 'up')}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onVote(comment.id, 'up')
+                  }}
                   title={comment.voteStatus === 'up' ? '取消赞' : '赞'}
                 >
                   {comment.voteStatus === 'up' ? (
-                    <ThumbsUp className="h-2.5 w-2.5 fill-blue-600 text-blue-600" />
+                    <ThumbsUp className="h-2.5 w-2.5 fill-black text-black" />
                   ) : (
                     <ThumbsUp className="h-2.5 w-2.5" />
                   )}
