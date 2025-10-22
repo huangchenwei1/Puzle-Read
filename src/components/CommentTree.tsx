@@ -1,12 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, ThumbsUp, MoreHorizontal, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ThumbsUp, MoreHorizontal, Trash2 } from 'lucide-react';
 import type { Comment } from '@/data/mockArticles';
 
 interface CommentTreeProps {
   comments: Comment[];
   onReply: (parentId: string, content: string) => void;
+  onReplyClick: (commentId: string, commentAuthor: string) => void;
   onVote: (commentId: string, direction: 'up' | 'down') => void;
   onDelete: (commentId: string) => void;
   articleId: string;
@@ -15,6 +24,7 @@ interface CommentTreeProps {
 interface CommentItemProps {
   comment: Comment;
   onReply: (parentId: string, content: string) => void;
+  onReplyClick: (commentId: string, commentAuthor: string) => void;
   onVote: (commentId: string, direction: 'up' | 'down') => void;
   onDelete: (commentId: string) => void;
   showThreadLine?: boolean;
@@ -24,6 +34,7 @@ interface CommentItemProps {
 const CommentItem: React.FC<CommentItemProps> = ({
   comment,
   onReply,
+  onReplyClick,
   onVote,
   onDelete,
   showThreadLine = false,
@@ -33,6 +44,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const [replyContent, setReplyContent] = useState('');
   const [showNested, setShowNested] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // 点击外部关闭菜单
@@ -88,7 +100,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
       )}
 
       {/* 评论主体 */}
-      <div className="flex gap-3 py-3 bg-white" style={{ marginLeft: `${depth > 0 ? '12px' : '0'}` }}>
+      <div
+        className="flex gap-3 py-3 bg-white cursor-pointer hover:bg-gray-50 transition-colors"
+        style={{ marginLeft: `${depth > 0 ? '12px' : '0'}` }}
+        onClick={() => onReplyClick(comment.id, comment.author)}
+      >
         {/* 评论内容 */}
         <div className="flex-1 min-w-0">
           {/* 作者信息行 */}
@@ -110,7 +126,10 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   variant="ghost"
                   size="sm"
                   className="h-5 px-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                  onClick={() => setShowMenu(!showMenu)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowMenu(!showMenu)
+                  }}
                 >
                   <MoreHorizontal className="h-3.5 w-3.5" />
                 </Button>
@@ -120,75 +139,58 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   <div className="absolute left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-md z-10 min-w-max">
                     {/* 删除选项 */}
                     <button
-                      className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
-                      onClick={() => {
-                        if (confirm('确定要删除这条评论吗？')) {
-                          onDelete(comment.id);
-                        }
+                      className="w-full px-3 py-2 text-left text-sm text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setShowMenu(false);
+                        setShowDeleteDialog(true);
                       }}
                     >
-                      <Trash2 className="h-3 w-3" />
-                      删除
+                      <Trash2 className="h-4 w-4 shrink-0" />
+                      <span>删除</span>
                     </button>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* 右上角展开/收起 */}
-            {totalReplies > 0 && (
+            {/* 右侧操作按钮 - 点赞和回复 */}
+            <div className="flex items-center gap-0">
+              {/* 只在Puzle的内容时显示点赞按钮 */}
+              {comment.author === "Puzle" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 px-0.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                  onClick={() => onVote(comment.id, 'up')}
+                  title={comment.voteStatus === 'up' ? '取消赞' : '赞'}
+                >
+                  {comment.voteStatus === 'up' ? (
+                    <ThumbsUp className="h-2.5 w-2.5 fill-blue-600 text-blue-600" />
+                  ) : (
+                    <ThumbsUp className="h-2.5 w-2.5" />
+                  )}
+                </Button>
+              )}
+
+              {/* 回复按钮 - 最右边 */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 px-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center gap-1"
-                onClick={() => setShowNested(!showNested)}
-                title={showNested ? '收起回复' : '展开回复'}
+                className="h-5 px-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onReplyClick(comment.id, comment.author)
+                }}
               >
-                <span className="text-xs">{totalReplies}条评论</span>
-                {showNested ? (
-                  <ChevronUp className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                )}
+                回复
               </Button>
-            )}
+            </div>
           </div>
 
           {/* 评论文本 */}
           <div className="text-sm text-gray-700 leading-relaxed mb-2 whitespace-pre-wrap">
             {comment.content}
-          </div>
-
-          {/* 操作按钮行 - 左对齐 */}
-          <div className="flex items-center gap-2 text-xs -ml-2">
-            {/* 回复按钮 */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              onClick={() => setIsReplying(!isReplying)}
-            >
-              <MessageSquare className="h-3 w-3" />
-              <span className="ml-1">回复</span>
-            </Button>
-
-            {/* 只在Puzle的内容时显示点赞按钮 */}
-            {comment.author === "Puzle" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                onClick={() => onVote(comment.id, 'up')}
-                title={comment.voteStatus === 'up' ? '取消赞' : '赞'}
-              >
-                {comment.voteStatus === 'up' ? (
-                  <ThumbsUp className="h-3 w-3 fill-blue-600 text-blue-600" />
-                ) : (
-                  <ThumbsUp className="h-3 w-3" />
-                )}
-              </Button>
-            )}
           </div>
 
           {/* 回复输入框 */}
@@ -236,6 +238,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
               key={reply.id}
               comment={reply}
               onReply={onReply}
+              onReplyClick={onReplyClick}
               onVote={onVote}
               onDelete={onDelete}
               showThreadLine={true}
@@ -244,6 +247,28 @@ const CommentItem: React.FC<CommentItemProps> = ({
           ))}
         </div>
       )}
+
+      {/* 删除确认对话框 */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogTitle>删除评论</AlertDialogTitle>
+          <AlertDialogDescription>
+            确定要删除这条评论吗？此操作无法撤销。
+          </AlertDialogDescription>
+          <div className="flex gap-3 justify-end mt-4">
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(comment.id);
+                setShowDeleteDialog(false);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              删除
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -251,6 +276,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
 export const CommentTree: React.FC<CommentTreeProps> = ({
   comments,
   onReply,
+  onReplyClick,
   onVote,
   onDelete,
   articleId
@@ -268,6 +294,7 @@ export const CommentTree: React.FC<CommentTreeProps> = ({
           key={comment.id}
           comment={comment}
           onReply={onReply}
+          onReplyClick={onReplyClick}
           onVote={onVote}
           onDelete={onDelete}
           articleId={articleId}

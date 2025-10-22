@@ -1,9 +1,8 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ArrowLeft, MoreVertical, Trash2, Play, ExternalLink, Plus, MessageCircle } from "lucide-react"
 import type { Article, Comment } from "@/data/mockArticles"
@@ -34,6 +33,8 @@ export default function ArticleDetail() {
   const [newComment, setNewComment] = useState("")
   const [isMoreOpen, setIsMoreOpen] = useState(false)
   const [isAddCommentOpen, setIsAddCommentOpen] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<{ id: string; author: string; content: string } | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // 递归查找父评论深度
   const getParentDepth = (comments: Comment[], targetParentId: string): number => {
@@ -105,10 +106,43 @@ export default function ArticleDetail() {
     setComments(updatedComments)
     saveCommentsToStorage(updatedComments)
 
-    if (!isReply) {
-      setNewComment("")
-      setIsAddCommentOpen(false)
+    // 清空状态并退出激活状态
+    setNewComment("")
+    setIsAddCommentOpen(false)
+    setReplyingTo(null)
+  }
+
+  // 递归查找评论对象
+  const findCommentById = (comments: Comment[], targetId: string): Comment | null => {
+    for (const comment of comments) {
+      if (comment.id === targetId) {
+        return comment
+      }
+      if (comment.replies && comment.replies.length > 0) {
+        const found = findCommentById(comment.replies, targetId)
+        if (found) return found
+      }
     }
+    return null
+  }
+
+  // 处理回复点击
+  const handleReplyClick = (commentId: string, commentAuthor: string) => {
+    const targetComment = findCommentById(comments, commentId)
+    if (targetComment) {
+      setReplyingTo({ id: commentId, author: commentAuthor, content: targetComment.content })
+      setIsAddCommentOpen(true)
+      // 延迟 focus 以确保 DOM 更新完成
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 0)
+    }
+  }
+
+  // 取消回复
+  const handleCancelReply = () => {
+    setReplyingTo(null)
+    setNewComment("")
   }
 
   // 更新评论投票状态
@@ -355,6 +389,7 @@ export default function ArticleDetail() {
               <CommentTree
                 comments={comments}
                 onReply={handleAddArticleComment}
+                onReplyClick={handleReplyClick}
                 onVote={(commentId: string, direction: 'up' | 'down') => {
                   const updatedComments = updateCommentVote(comments, commentId, direction)
                   setComments(updatedComments)
@@ -373,62 +408,68 @@ export default function ArticleDetail() {
 
         {/* 底部讨论输入框 */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Avatar className="h-8 w-8 mt-1">
-                <AvatarFallback className="bg-gray-500 text-white text-sm">
-                  我
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                {isAddCommentOpen ? (
-                  <div className="space-y-3">
-                    <Input
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="分享你的观点..."
-                      className="text-sm"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          handleAddArticleComment()
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleAddArticleComment()}
-                        disabled={!newComment.trim()}
-                        className="bg-gray-900 hover:bg-gray-800"
-                      >
-                        发表评论
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setIsAddCommentOpen(false)
-                          setNewComment('')
-                        }}
-                      >
-                        取消
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-gray-500 hover:text-gray-700 h-auto p-3"
-                    onClick={() => setIsAddCommentOpen(true)}
-                  >
-                    <Plus className="w-4 w-4 mr-2" />
-                    <span>发表评论...</span>
-                  </Button>
-                )}
+          <div className="space-y-2">
+            {/* 回复状态提示 */}
+            {replyingTo && (
+              <div className="text-xs text-gray-600 flex items-center justify-between gap-2">
+                <span className="truncate">
+                  <span className="text-gray-400">回复: </span>
+                  <span className="text-gray-700">{replyingTo.content}</span>
+                </span>
+                <button
+                  onClick={handleCancelReply}
+                  className="text-gray-400 hover:text-gray-600 shrink-0"
+                >
+                  ✕
+                </button>
               </div>
-            </div>
+            )}
+            <Input
+              ref={inputRef}
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder={replyingTo ? "写下你的回复..." : "分享你的观点..."}
+              className="text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  if (replyingTo) {
+                    handleAddArticleComment(replyingTo.id, newComment)
+                  } else {
+                    handleAddArticleComment()
+                  }
+                }
+              }}
+              onFocus={() => setIsAddCommentOpen(true)}
+            />
+            {isAddCommentOpen && (
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (replyingTo) {
+                      handleAddArticleComment(replyingTo.id, newComment)
+                    } else {
+                      handleAddArticleComment()
+                    }
+                  }}
+                  disabled={!newComment.trim()}
+                  className="bg-gray-900 hover:bg-gray-800"
+                >
+                  发表
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsAddCommentOpen(false)
+                    handleCancelReply()
+                  }}
+                >
+                  取消
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
