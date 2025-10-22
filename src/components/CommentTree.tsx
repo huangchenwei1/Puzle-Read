@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, ThumbsUp, ThumbsDown, Trash2 } from 'lucide-react';
+import { MessageSquare, ThumbsUp, MoreHorizontal, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Comment } from '@/data/mockArticles';
 
 interface CommentTreeProps {
@@ -32,6 +32,24 @@ const CommentItem: React.FC<CommentItemProps> = ({
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [showNested, setShowNested] = useState(true);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // 点击外部关闭菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showMenu]);
 
   const handleReplySubmit = () => {
     if (replyContent.trim()) {
@@ -49,7 +67,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   };
 
   const depth = comment.depth || 0;
-  const indentLeft = depth * 24; // 24px 每层缩进
+  const indentLeft = depth * 12; // 12px 每层缩进（约一个字宽度）
 
   // 递归计数所有子评论数量
   const getTotalReplies = (comment: Comment): number => {
@@ -64,29 +82,76 @@ const CommentItem: React.FC<CommentItemProps> = ({
       className="relative"
       style={{ marginLeft: `${indentLeft}px` }}
     >
-      {/* Reddit 风格的竖线 */}
+      {/* 嵌套回复的细竖线 */}
       {showThreadLine && depth > 0 && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gray-300 transform -translate-x-3.5" />
+        <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-200 transform -translate-x-1.5" />
       )}
 
       {/* 评论主体 */}
-      <div className="flex gap-3 py-3 bg-white">
+      <div className="flex gap-3 py-3 bg-white" style={{ marginLeft: `${depth > 0 ? '12px' : '0'}` }}>
         {/* 评论内容 */}
         <div className="flex-1 min-w-0">
-          {/* 作者信息 */}
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className={`text-sm ${
-                comment.author === "Puzle" ? "text-blue-600" : "text-gray-700"
-              }`}
-            >
-              {comment.author}
-            </span>
+          {/* 作者信息行 */}
+          <div className="flex items-center justify-between mb-1 gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs text-gray-400">
+                {comment.author}
+              </span>
 
-            <span className="text-xs text-gray-400">{comment.time}</span>
+              <span className="text-xs text-gray-400">{comment.time}</span>
 
-            {comment.score !== undefined && comment.score > 0 && (
-              <span className="text-xs text-gray-400">+{comment.score}</span>
+              {comment.score !== undefined && comment.score > 0 && (
+                <span className="text-xs text-gray-400">+{comment.score}</span>
+              )}
+
+              {/* 更多菜单 - 跟在时间后面 */}
+              <div className="relative flex items-center" ref={menuRef}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 px-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  onClick={() => setShowMenu(!showMenu)}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                </Button>
+
+                {/* 下拉菜单 */}
+                {showMenu && (
+                  <div className="absolute left-0 mt-1 bg-white border border-gray-200 rounded-md shadow-md z-10 min-w-max">
+                    {/* 删除选项 */}
+                    <button
+                      className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      onClick={() => {
+                        if (confirm('确定要删除这条评论吗？')) {
+                          onDelete(comment.id);
+                        }
+                        setShowMenu(false);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      删除
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 右上角展开/收起 */}
+            {totalReplies > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 px-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center gap-1"
+                onClick={() => setShowNested(!showNested)}
+                title={showNested ? '收起回复' : '展开回复'}
+              >
+                <span className="text-xs">{totalReplies}条评论</span>
+                {showNested ? (
+                  <ChevronUp className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                )}
+              </Button>
             )}
           </div>
 
@@ -95,70 +160,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
             {comment.content}
           </div>
 
-          {/* 操作按钮和投票区域 */}
-          <div className="flex items-center gap-3 text-xs">
-            {/* 只在Puzle的内容时显示投票按钮 */}
-            {comment.author === "Puzle" && (
-              <>
-                {/* 状态1：无操作，显示赞和踩两按钮 */}
-                {comment.voteStatus === null && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
-                      onClick={() => onVote(comment.id, 'up')}
-                    >
-                      <ThumbsUp className="h-3 w-3 mr-1" />
-                      赞
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-gray-500 hover:text-red-600 hover:bg-red-50"
-                      onClick={() => onVote(comment.id, 'down')}
-                    >
-                      <ThumbsDown className="h-3 w-3 mr-1" />
-                      踩
-                    </Button>
-                    <span className="text-gray-300">|</span>
-                  </>
-                )}
-
-                {/* 状态2：已赞，只显示已赞的按钮 */}
-                {comment.voteStatus === 'up' && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 bg-blue-50 text-blue-600 hover:bg-blue-100"
-                      onClick={() => onVote(comment.id, 'up')}
-                    >
-                      <ThumbsUp className="h-3 w-3 mr-1" />
-                      已赞
-                    </Button>
-                    <span className="text-gray-300">|</span>
-                  </>
-                )}
-
-                {/* 状态3：已踩，只显示已踩的按钮 */}
-                {comment.voteStatus === 'down' && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 bg-red-50 text-red-600 hover:bg-red-100"
-                      onClick={() => onVote(comment.id, 'down')}
-                    >
-                      <ThumbsDown className="h-3 w-3 mr-1" />
-                      已踩
-                    </Button>
-                    <span className="text-gray-300">|</span>
-                  </>
-                )}
-              </>
-            )}
-
+          {/* 操作按钮行 - 左对齐 */}
+          <div className="flex items-center gap-2 text-xs -ml-2">
             {/* 回复按钮 */}
             <Button
               variant="ghost"
@@ -166,34 +169,26 @@ const CommentItem: React.FC<CommentItemProps> = ({
               className="h-6 px-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
               onClick={() => setIsReplying(!isReplying)}
             >
-              <MessageSquare className="h-3 w-3 mr-1" />
-              回复
+              <MessageSquare className="h-3 w-3" />
+              <span className="ml-1">回复</span>
             </Button>
 
-            {/* 展开/收起回复 */}
-            {totalReplies > 0 && (
-              <button
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded"
-                onClick={() => setShowNested(!showNested)}
+            {/* 只在Puzle的内容时显示点赞按钮 */}
+            {comment.author === "Puzle" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                onClick={() => onVote(comment.id, 'up')}
+                title={comment.voteStatus === 'up' ? '取消赞' : '赞'}
               >
-                {showNested ? "收起" : "展开"} {totalReplies}
-              </button>
+                {comment.voteStatus === 'up' ? (
+                  <ThumbsUp className="h-3 w-3 fill-blue-600 text-blue-600" />
+                ) : (
+                  <ThumbsUp className="h-3 w-3" />
+                )}
+              </Button>
             )}
-
-            {/* 删除按钮 */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-gray-500 hover:text-red-600 hover:bg-red-50"
-              onClick={() => {
-                if (confirm('确定要删除这条评论吗？')) {
-                  onDelete(comment.id);
-                }
-              }}
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              删除
-            </Button>
           </div>
 
           {/* 回复输入框 */}
