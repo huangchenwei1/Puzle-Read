@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -352,35 +351,35 @@ export default function ArticleList() {
                 </h2>
 
                 {/* 该分组的文章列表 */}
-                <div className="space-y-2">
-                  {sortedGroupedArticles[groupName].map((article) => (
-                    <Card
-                      key={article.id}
-                      className="cursor-pointer hover:border-gray-400 transition-colors border-gray-200 overflow-hidden py-0"
-                      onClick={() => handleArticleClick(article.id)}
-                    >
-                      {/* 媒体类型卡片 - 顶部小图 */}
-                      {article.type === "media" && article.imageUrl && (
-                        <div className="px-4">
-                          <div className="w-full rounded-lg overflow-hidden bg-gray-100 relative">
-                            <img
-                              src={article.imageUrl}
-                              alt={article.title}
-                              className="w-full h-full object-cover"
-                            />
-                            {/* 视频播放按钮 */}
-                            {article.mediaType === "video" && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                                  <Play className="w-3 h-3 text-white fill-white ml-0.5" />
+                <div>
+                  {sortedGroupedArticles[groupName].map((article, index) => (
+                    <div key={article.id}>
+                      {/* 文章内容 */}
+                      <div
+                        className="cursor-pointer hover:bg-gray-50 transition-colors py-4 px-2"
+                        onClick={() => handleArticleClick(article.id)}
+                      >
+                        {/* 媒体类型卡片 - 顶部小图 */}
+                        {article.type === "media" && article.imageUrl && (
+                          <div className="mb-3">
+                            <div className="w-full overflow-hidden bg-gray-100 relative">
+                              <img
+                                src={article.imageUrl}
+                                alt={article.title}
+                                className="w-full h-full object-cover"
+                              />
+                              {/* 视频播放按钮 */}
+                              {article.mediaType === "video" && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                                    <Play className="w-3 h-3 text-white fill-white ml-0.5" />
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      <CardContent className="p-4">
                         <div className="flex justify-between items-start gap-3">
                           {/* 左侧：标题和元信息（垂直排列） */}
                           <div className="flex-1 min-w-0">
@@ -421,7 +420,7 @@ export default function ArticleList() {
 
                           {/* 右侧：预览图 */}
                           {article.imageUrl && (
-                            <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 shrink-0 flex-shrink-0">
+                            <div className="w-12 h-12 overflow-hidden bg-gray-100 shrink-0 flex-shrink-0">
                               <img
                                 src={article.imageUrl}
                                 alt={article.title}
@@ -430,8 +429,13 @@ export default function ArticleList() {
                             </div>
                           )}
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+
+                      {/* 分隔线 */}
+                      {index < sortedGroupedArticles[groupName].length - 1 && (
+                        <div className="border-b border-gray-100" />
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
