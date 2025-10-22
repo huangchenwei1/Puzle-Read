@@ -4,6 +4,9 @@ export interface Comment {
   author: string
   content: string
   time: string
+  parentId?: string  // 父评论ID，用于树状结构
+  depth?: number    // 嵌套深度，用于UI渲染
+  score?: number    // 评论评分
   replies?: Comment[]
   quotedText?: string  // 引用的段落内容（用于原文页的段落评论）
 }
@@ -276,6 +279,150 @@ export const mockArticles: Article[] = [
         ]
       }
     ]
+  },
+  {
+    id: "3",
+    title: "Google I/O 开发者大会亮点分享",
+    content: "Google 发布了多项开发者工具和AI服务的重大更新，包括 Gemini 模型的性能提升、新版本的 Android Studio 等...",
+    source: "Google Developers",
+    time: "8小时前",
+    timestamp: now - 8 * oneHour,
+    isDiscussed: false,
+    imageUrl: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&h=400&fit=crop",
+    type: "link",
+    originalUrl: "https://developers.google.com/io-highlights"
+  },
+  {
+    id: "4",
+    title: "远程工作效率提升指南",
+    content: "在分布式团队中保持高效沟通和协作的实用策略，涵盖工具选择、团队文化建设等方面...",
+    source: "雷锋网",
+    time: "12小时前",
+    timestamp: now - 12 * oneHour,
+    isDiscussed: true,
+    imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=400&fit=crop",
+    type: "link",
+    originalUrl: "https://www.leiphone.com/remote-work-efficiency",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "远程工作的效率提升确实需要系统的方法论。文章提到的几个重点很有价值：\n\n**协同工具选择**：从简单的视频通话到项目管理，工具不是越多越好，要建立核心流程\n**异步沟通规范**：明确响应时间、文档化重要决策，避免信息丢失\n**绩效评估标准**：从可量化指标转向结果导向，减少过程管控\n\n补充一个点：建立虚拟水冷却器(digital watercooler)，保持团队的社交连接和文化传承。",
+        time: "10小时前"
+      },
+      {
+        id: "c2",
+        author: "我",
+        content: "异步沟通规范很重要，但怎么把握好度和响应速度",
+        time: "9小时前"
+      }
+    ]
+  },
+  {
+    id: "5",
+    title: "移动应用设计趋势 2024",
+    content: "微交互动画、AI 驱动的个性化和增强现实等新技术正在重塑移动应用的用户体验。本文分析了最新的设计趋势...",
+    source: "MobilityWare",
+    time: "18小时前",
+    timestamp: now - 18 * oneHour,
+    isDiscussed: false,
+    imageUrl: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=400&fit=crop",
+    type: "link",
+    originalUrl: "https://mobilityware.com/mobile-design-trends-2024"
+  },
+  {
+    id: "9",
+    title: "投资区块链项目的风险评估框架",
+    content: "在投资区块链项目时，如何进行全面的风险评估，包括技术风险、市场风险、团队风险和监管风险等方面的分析...",
+    source: "36氪",
+    time: "4天前",
+    timestamp: now - 4 * oneDay,
+    isDiscussed: true,
+    type: "link",
+    originalUrl: "https://36kr.com/blockchain-investment-risks",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "区块链投资的风险评估确实需要系统化的方法。几个关键考察点：\n\n**技术层面**：\n• 代码审计是否完整？是否有安全漏洞？\n• 技术文档是否齐全？Codebase 存储在哪？\n• 是否经过多次审计？\n\n**团队背景**：\n• 创始团队的区块链经验是否足够？\n• 顾问团队的质量和专业度如何？\n• 是否有足够的研发投入？\n\n**经济模型**：\n• Tokenomics 设计是否合理？\n• 激励机制是否可持续？\n• 有没有明确的路线图和里程碑？\n\n记住一句话：只有理解了项目，才有可能发现价值。",
+        time: "4天前"
+      }
+    ]
+  },
+  {
+    id: "10",
+    title: "ESG 投资理念的实践应用",
+    content: "ESG (环境、社会、治理) 投资理念在全球范围内的实践案例分析，如何在投资决策中实现可持续发展目标...",
+    source: "经济观察报",
+    time: "6天前",
+    timestamp: now - 6 * oneDay,
+    isDiscussed: false,
+    imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=400&fit=crop",
+    type: "link",
+    originalUrl: "https://eeo.com.cn/esg-investment-practice"
+  },
+  {
+    id: "11",
+    title: "物联网安全风险与防护策略",
+    content: "随着物联网设备的快速增长，设备安全、网络安全和数据隐私成为关键挑战。本文分析了主要安全风险和防护措施...",
+    source: "Cybersecurity Today",
+    time: "1周前",
+    timestamp: now - 7 * oneDay,
+    isDiscussed: true,
+    imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=400&fit=crop",
+    type: "link",
+    originalUrl: "https://cybersecurity.today/iot-security-risks",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "物联网安全是一个系统性问题，需要从多层面考虑：\n\n**设备层面**：固件更新机制、网络准入控制、物理安全设计\n**网络层面**：通信协议加密、异常流量检测、入侵防御系统\n**应用层面**：API 安全、数据传输保护、权限管理\n**管理层面**：设备资产管理、安全配置标准、应急响应计划\n\n关键是要建立安全生命周期管理，从设备设计研发就开始考虑安全，而不是事后补救。",
+        time: "5天前"
+      }
+    ]
+  },
+  {
+    id: "12",
+    title: "前端性能优化实战指南",
+    content: "从代码分割、缓存策略、渲染优化等多个角度，分享前端性能优化的实用技巧和最佳实践...",
+    source: "掘金技术社区",
+    time: "2周前",
+    timestamp: now - 14 * oneDay,
+    isDiscussed: false,
+    imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=400&fit=crop",
+    type: "link",
+    originalUrl: "https://juejin.cn/frontend-performance-guide"
+  },
+  {
+    id: "13",
+    title: "AI 芯片架构设计解析",
+    content: "介绍TPU、GPU和ASIC等AI芯片的工作原理、架构特点和应用场景，以及未来发展趋势...",
+    source: "半导体新闻",
+    time: "10天前",
+    timestamp: now - 10 * oneDay,
+    isDiscussed: true,
+    type: "link",
+    originalUrl: "https://semi.news/ai-chip-architecture",
+    comments: [
+      {
+        id: "c1",
+        author: "Puzle",
+        content: "AI 芯片的发展确实很有趣，每个类型都有自己的定位：\n\n**GPU的灵活性**：通用计算，适合多样化算法的快速迭代\n**TPU的效率**：专用设计，矩阵运算优化，推理性能卓越\n**ASIC的定制**：按需定制，功耗和性能最优，但灵活性较差\n\n百度昆仑芯、华为昇腾等方式很不错的思路，将通用性和专用性结合起来，既保证性能又保持灵活性。",
+        time: "9天前"
+      }
+    ]
+  },
+  {
+    id: "14",
+    title: "量子计算商业化进展报告",
+    content: "IBM、Google、Rigetti等量子计算公司的最新进展，包括量子优势实现、可编程量子计算机的发布等...",
+    source: "MIT Technology Review",
+    time: "3周前",
+    timestamp: now - 21 * oneDay,
+    isDiscussed: false,
+    imageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=400&fit=crop",
+    type: "link",
+    originalUrl: "https://mitkr.com/quantum-commerce-progress"
   }
 ]
 

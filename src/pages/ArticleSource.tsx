@@ -1,50 +1,54 @@
-import { useState, useEffect, useRef } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { ArrowLeft, MoreHorizontal, MessageCircle, X } from "lucide-react"
-import { mockArticles } from "@/data/mockArticles"
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ArrowLeft, MoreHorizontal, MessageCircle, X } from "lucide-react";
+import { mockArticles } from "@/data/mockArticles";
 
 // 段落评论类型
 interface ParagraphComment {
-  id: string
-  author: string
-  content: string
-  time: string
+  id: string;
+  author: string;
+  content: string;
+  time: string;
 }
 
 // 段落数据类型
 interface Paragraph {
-  id: string
-  content: string
-  comments: ParagraphComment[]
+  id: string;
+  content: string;
+  comments: ParagraphComment[];
 }
 
 export default function ArticleSource() {
-  const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
-  const [loading, setLoading] = useState(true)
-  const [progress, setProgress] = useState(0)
-  const [selectedParagraph, setSelectedParagraph] = useState<string | null>(null)
-  const [newComment, setNewComment] = useState("")
-  const [paragraphs, setParagraphs] = useState<Paragraph[]>([])
-  const [highlightedParagraph, setHighlightedParagraph] = useState<string | null>(null)
-  const [isCommentBarExpanded, setIsCommentBarExpanded] = useState(false)
-  const commentBarRef = useRef<HTMLDivElement>(null)
-  
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [selectedParagraph, setSelectedParagraph] = useState<string | null>(
+    null,
+  );
+  const [newComment, setNewComment] = useState("");
+  const [paragraphs, setParagraphs] = useState<Paragraph[]>([]);
+  const [highlightedParagraph, setHighlightedParagraph] = useState<
+    string | null
+  >(null);
+  const [isCommentBarExpanded, setIsCommentBarExpanded] = useState(false);
+  const commentBarRef = useRef<HTMLDivElement>(null);
+
   // 找到对应的文章
   const findArticle = () => {
-    const storedArticles = localStorage.getItem("articles")
+    const storedArticles = localStorage.getItem("articles");
     if (storedArticles) {
-      const parsed = JSON.parse(storedArticles)
-      const found = parsed.find((a: any) => a.id === id)
-      if (found) return found
+      const parsed = JSON.parse(storedArticles);
+      const found = parsed.find((a: any) => a.id === id);
+      if (found) return found;
     }
-    return mockArticles.find(a => a.id === id)
-  }
-  
-  const article = findArticle()
+    return mockArticles.find((a) => a.id === id);
+  };
+
+  const article = findArticle();
 
   // 初始化段落数据
   useEffect(() => {
@@ -56,129 +60,134 @@ export default function ArticleSource() {
         "对于个人而言，保持学习和适应能力变得越来越重要。我们需要不断更新自己的知识体系，才能在这个快速变化的时代保持竞争力。",
         "同时，技术的发展也带来了新的机遇。通过合理利用这些工具和平台，我们能够创造出更多的价值，实现个人和职业的成长。",
         "技术的真正价值在于它如何帮助人们解决实际问题，创造更美好的生活。",
-        "展望未来，我们有理由相信，随着技术的不断进步和应用的深入，会有更多令人兴奋的可能性等待我们去探索和实现。"
-      ]
+        "展望未来，我们有理由相信，随着技术的不断进步和应用的深入，会有更多令人兴奋的可能性等待我们去探索和实现。",
+      ];
 
       // 尝试从 localStorage 加载已有的评论数据
-      const storageKey = `article-${id}-paragraph-comments`
-      const savedComments = localStorage.getItem(storageKey)
-      
-      let initialParagraphs: Paragraph[]
-      
+      const storageKey = `article-${id}-paragraph-comments`;
+      const savedComments = localStorage.getItem(storageKey);
+
+      let initialParagraphs: Paragraph[];
+
       if (savedComments) {
         // 如果有保存的数据，使用保存的数据
-        initialParagraphs = JSON.parse(savedComments)
+        initialParagraphs = JSON.parse(savedComments);
       } else {
         // 创建新的段落数据
         initialParagraphs = contentParagraphs.map((content, index) => ({
           id: `p-${index}`,
           content,
-          comments: []
-        }))
+          comments: [],
+        }));
 
         // 将文章讨论区中的引用式评论关联到对应的段落
         if (article.comments && article.comments.length > 0) {
           // 递归查找所有包含 quotedText 的评论
           const findQuotedComments = (comments: any[]): any[] => {
-            let result: any[] = []
+            let result: any[] = [];
             for (const comment of comments) {
               if (comment.quotedText) {
-                result.push(comment)
+                result.push(comment);
               }
               if (comment.replies && comment.replies.length > 0) {
-                result = result.concat(findQuotedComments(comment.replies))
+                result = result.concat(findQuotedComments(comment.replies));
               }
             }
-            return result
-          }
+            return result;
+          };
 
-          const quotedComments = findQuotedComments(article.comments)
+          const quotedComments = findQuotedComments(article.comments);
 
           // 将引用评论匹配到段落
           quotedComments.forEach((comment) => {
-            const matchedParagraph = initialParagraphs.find(p => 
-              p.content.includes(comment.quotedText) || comment.quotedText.includes(p.content)
-            )
-            
+            const matchedParagraph = initialParagraphs.find(
+              (p) =>
+                p.content.includes(comment.quotedText) ||
+                comment.quotedText.includes(p.content),
+            );
+
             if (matchedParagraph) {
               // 添加评论到段落
               const paragraphComment: ParagraphComment = {
                 id: comment.id,
                 author: comment.author,
                 content: comment.content,
-                time: comment.time
-              }
-              matchedParagraph.comments.push(paragraphComment)
+                time: comment.time,
+              };
+              matchedParagraph.comments.push(paragraphComment);
             }
-          })
+          });
         }
       }
 
-      setParagraphs(initialParagraphs)
+      setParagraphs(initialParagraphs);
     }
-  }, [article, id])
+  }, [article, id]);
 
   // 模拟页面加载
   useEffect(() => {
     // 快速加载到70%
-    const timer1 = setTimeout(() => setProgress(70), 100)
+    const timer1 = setTimeout(() => setProgress(70), 100);
     // 然后慢慢加载到95%
-    const timer2 = setTimeout(() => setProgress(95), 400)
+    const timer2 = setTimeout(() => setProgress(95), 400);
     // 最后完成加载
     const timer3 = setTimeout(() => {
-      setProgress(100)
-      setTimeout(() => setLoading(false), 200)
-    }, 800)
+      setProgress(100);
+      setTimeout(() => setLoading(false), 200);
+    }, 800);
 
     return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-      clearTimeout(timer3)
-    }
-  }, [])
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
 
   // 处理段落点击
   const handleParagraphClick = (paragraphId: string) => {
-    setSelectedParagraph(paragraphId)
-    setHighlightedParagraph(paragraphId)
-    setIsCommentBarExpanded(true)
-    
+    setSelectedParagraph(paragraphId);
+    setHighlightedParagraph(paragraphId);
+    setIsCommentBarExpanded(true);
+
     // 高亮效果持续2秒
     setTimeout(() => {
-      setHighlightedParagraph(null)
-    }, 2000)
+      setHighlightedParagraph(null);
+    }, 2000);
 
     // 滚动到评论区
     setTimeout(() => {
-      commentBarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 100)
-  }
+      commentBarRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 100);
+  };
 
   // 添加评论
   const handleAddComment = () => {
-    if (!newComment.trim() || !selectedParagraph || !id) return
+    if (!newComment.trim() || !selectedParagraph || !id) return;
 
     const newCommentObj: ParagraphComment = {
       id: Date.now().toString(),
       author: "我",
       content: newComment,
-      time: "刚刚"
-    }
+      time: "刚刚",
+    };
 
-    const updatedParagraphs = paragraphs.map(p =>
+    const updatedParagraphs = paragraphs.map((p) =>
       p.id === selectedParagraph
         ? { ...p, comments: [...p.comments, newCommentObj] }
-        : p
-    )
+        : p,
+    );
 
-    setParagraphs(updatedParagraphs)
+    setParagraphs(updatedParagraphs);
 
     // 保存段落评论到 localStorage
-    const storageKey = `article-${id}-paragraph-comments`
-    localStorage.setItem(storageKey, JSON.stringify(updatedParagraphs))
+    const storageKey = `article-${id}-paragraph-comments`;
+    localStorage.setItem(storageKey, JSON.stringify(updatedParagraphs));
 
     // 同步到文章讨论区（引用式评论）
-    const currentParagraph = paragraphs.find(p => p.id === selectedParagraph)
+    const currentParagraph = paragraphs.find((p) => p.id === selectedParagraph);
     if (currentParagraph) {
       // 创建引用式评论内容
       const quotedComment = {
@@ -187,64 +196,66 @@ export default function ArticleSource() {
         content: newComment,
         time: "刚刚",
         replies: [],
-        quotedText: currentParagraph.content // 添加引用的段落内容
-      }
+        quotedText: currentParagraph.content, // 添加引用的段落内容
+      };
 
       // 从 localStorage 读取文章数据
-      const existingArticles = localStorage.getItem("articles")
-      const storedArticles = existingArticles ? JSON.parse(existingArticles) : []
-      
+      const existingArticles = localStorage.getItem("articles");
+      const storedArticles = existingArticles
+        ? JSON.parse(existingArticles)
+        : [];
+
       // 查找并更新当前文章
       const updatedArticles = storedArticles.map((article: any) => {
         if (article.id === id) {
           return {
             ...article,
-            comments: [...(article.comments || []), quotedComment]
-          }
+            comments: [...(article.comments || []), quotedComment],
+          };
         }
-        return article
-      })
+        return article;
+      });
 
       // 如果在 storedArticles 中没找到，尝试从 mockArticles 中找
-      const articleExists = updatedArticles.some((a: any) => a.id === id)
+      const articleExists = updatedArticles.some((a: any) => a.id === id);
       if (!articleExists && article) {
         updatedArticles.push({
           ...article,
-          comments: [...(article.comments || []), quotedComment]
-        })
+          comments: [...(article.comments || []), quotedComment],
+        });
       }
 
       // 保存更新后的文章数据
-      localStorage.setItem("articles", JSON.stringify(updatedArticles))
-      
+      localStorage.setItem("articles", JSON.stringify(updatedArticles));
+
       // 触发 storage 事件以通知其他页面更新
-      window.dispatchEvent(new Event('storage'))
+      window.dispatchEvent(new Event("storage"));
     }
 
-    setNewComment("")
-    
+    setNewComment("");
+
     // 评论成功后关闭评论栏
     setTimeout(() => {
-      setIsCommentBarExpanded(false)
-      setSelectedParagraph(null)
-    }, 500)
-  }
+      setIsCommentBarExpanded(false);
+      setSelectedParagraph(null);
+    }, 500);
+  };
 
   // 关闭评论栏
   const handleCloseCommentBar = () => {
-    setIsCommentBarExpanded(false)
-    setSelectedParagraph(null)
-  }
+    setIsCommentBarExpanded(false);
+    setSelectedParagraph(null);
+  };
 
   // 获取当前选中段落
-  const currentParagraph = paragraphs.find(p => p.id === selectedParagraph)
+  const currentParagraph = paragraphs.find((p) => p.id === selectedParagraph);
 
   if (!article) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500">文章不存在</p>
       </div>
-    )
+    );
   }
 
   // 加载状态
@@ -254,7 +265,10 @@ export default function ArticleSource() {
         <div className="max-w-md mx-auto min-h-screen flex flex-col bg-white">
           {/* 加载进度条 */}
           <div className="fixed top-0 left-0 right-0 z-50">
-            <div className="h-0.5 bg-blue-600 transition-all duration-300 ease-out" style={{ width: `${progress}%` }}></div>
+            <div
+              className="h-0.5 bg-blue-600 transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
           </div>
 
           {/* 顶部导航栏（加载时也显示） */}
@@ -306,7 +320,7 @@ export default function ArticleSource() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -350,7 +364,7 @@ export default function ArticleSource() {
           <div className="border-t border-gray-100 mx-6"></div>
 
           {/* 文章正文 */}
-          <article className="px-6 py-6">
+          <article className="px-6">
             {/* 如果有图片，显示题图 */}
             {article.imageUrl && (
               <div className="mb-6">
@@ -368,16 +382,17 @@ export default function ArticleSource() {
                 <div key={paragraph.id} className="relative mb-4 group">
                   {index === 3 ? (
                     /* 引用块样式 */
-                    <blockquote 
+                    <blockquote
                       onClick={() => handleParagraphClick(paragraph.id)}
                       className={`
                         border-l-4 pl-4 py-2 rounded-r cursor-pointer
                         transition-all duration-200
-                        ${paragraph.comments.length > 0 
-                          ? 'border-blue-500 bg-yellow-50 border-b-2 border-b-yellow-400' 
-                          : 'border-blue-500 bg-gray-50'
+                        ${
+                          paragraph.comments.length > 0
+                            ? "border-blue-500 bg-yellow-50 border-b-2 border-b-yellow-400"
+                            : "border-blue-500 bg-gray-50"
                         }
-                        ${highlightedParagraph === paragraph.id ? 'bg-blue-50 ring-2 ring-blue-200' : 'hover:bg-gray-100'}
+                        ${highlightedParagraph === paragraph.id ? "bg-blue-50 ring-2 ring-blue-200" : "hover:bg-gray-100"}
                       `}
                     >
                       <p className="text-gray-700 italic text-base leading-relaxed">
@@ -386,22 +401,23 @@ export default function ArticleSource() {
                     </blockquote>
                   ) : (
                     /* 普通段落 */
-                    <p 
+                    <p
                       onClick={() => handleParagraphClick(paragraph.id)}
                       className={`
                         text-base leading-relaxed text-gray-800 cursor-pointer rounded-md px-2 py-1 -mx-2
                         transition-all duration-200 relative
-                        ${paragraph.comments.length > 0 
-                          ? 'bg-yellow-50 border-b-2 border-b-yellow-400' 
-                          : ''
+                        ${
+                          paragraph.comments.length > 0
+                            ? "bg-yellow-50 border-b-2 border-b-yellow-400"
+                            : ""
                         }
-                        ${highlightedParagraph === paragraph.id ? 'bg-blue-50 ring-2 ring-blue-200' : 'hover:bg-gray-50'}
+                        ${highlightedParagraph === paragraph.id ? "bg-blue-50 ring-2 ring-blue-200" : "hover:bg-gray-50"}
                       `}
                     >
                       {paragraph.content}
                     </p>
                   )}
-                  
+
                   {/* 评论数量标识 */}
                   {paragraph.comments.length > 0 && (
                     <div className="absolute -right-2 top-0 flex items-center gap-1 text-xs text-yellow-700 bg-yellow-100 border border-yellow-300 rounded-full px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
@@ -422,10 +438,10 @@ export default function ArticleSource() {
         {selectedParagraph && (
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.1)]">
             <div className="max-w-md mx-auto">
-              <div 
+              <div
                 ref={commentBarRef}
                 className={`transition-all duration-300 ${
-                  isCommentBarExpanded ? 'max-h-80' : 'max-h-0'
+                  isCommentBarExpanded ? "max-h-80" : "max-h-0"
                 } overflow-hidden`}
               >
                 <div className="flex flex-col">
@@ -439,8 +455,10 @@ export default function ArticleSource() {
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                       <div className="flex items-start gap-2 mb-2">
                         <MessageCircle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
-                        <p className="text-xs text-yellow-700 font-medium">正在讨论的段落</p>
-                        <button 
+                        <p className="text-xs text-yellow-700 font-medium">
+                          正在讨论的段落
+                        </p>
+                        <button
                           onClick={handleCloseCommentBar}
                           className="ml-auto text-yellow-600 hover:text-yellow-800"
                         >
@@ -457,18 +475,31 @@ export default function ArticleSource() {
                   {currentParagraph && currentParagraph.comments.length > 0 && (
                     <div className="flex-1 overflow-y-auto px-4 pb-3 space-y-3 max-h-32">
                       {currentParagraph.comments.map((comment) => (
-                        <div key={comment.id} className="flex gap-2 bg-gray-50 rounded-lg p-2">
+                        <div
+                          key={comment.id}
+                          className="flex gap-2 bg-gray-50 rounded-lg p-2"
+                        >
                           <Avatar className="h-6 w-6 shrink-0">
-                            <AvatarFallback className={comment.author === "Puzle" ? "bg-blue-600 text-white text-[10px]" : "bg-gray-600 text-white text-[10px]"}>
+                            <AvatarFallback
+                              className={
+                                comment.author === "Puzle"
+                                  ? "bg-blue-600 text-white text-[10px]"
+                                  : "bg-gray-600 text-white text-[10px]"
+                              }
+                            >
                               {comment.author === "Puzle" ? "P" : "我"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className={`text-xs font-medium ${comment.author === "Puzle" ? "text-blue-600" : "text-gray-900"}`}>
+                              <span
+                                className={`text-xs font-medium ${comment.author === "Puzle" ? "text-blue-600" : "text-gray-900"}`}
+                              >
                                 {comment.author}
                               </span>
-                              <span className="text-[10px] text-gray-400">{comment.time}</span>
+                              <span className="text-[10px] text-gray-400">
+                                {comment.time}
+                              </span>
                             </div>
                             <p className="text-xs text-gray-700 leading-relaxed">
                               {comment.content}
@@ -490,7 +521,7 @@ export default function ArticleSource() {
                           className="rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 px-4"
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
-                              handleAddComment()
+                              handleAddComment();
                             }
                           }}
                         />
@@ -501,8 +532,18 @@ export default function ArticleSource() {
                         size="icon"
                         className="rounded-full bg-blue-600 hover:bg-blue-700 w-10 h-10 shrink-0"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                          />
                         </svg>
                       </Button>
                     </div>
@@ -514,6 +555,5 @@ export default function ArticleSource() {
         )}
       </div>
     </div>
-  )
+  );
 }
-
