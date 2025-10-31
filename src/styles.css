@@ -1,0 +1,9 @@
+:root {
+	--color-gray-0: rgba(255,255,255,1);
+	--color-gray-20: rgba(243,243,243,1);
+	--color-gray-40: rgba(224,224,224,1);
+	--color-gray-60: rgba(168,168,168,1);
+	--color-gray-80: rgba(109,109,109,1);
+	--color-gray-100: rgba(0,0,0,1);
+	--color-warn: rgba(250,81,81,1);
+}
