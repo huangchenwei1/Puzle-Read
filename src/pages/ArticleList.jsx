@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Box, Typography, InputBase, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import TuneIcon from '@mui/icons-material/Tune';
 import ArticleCard from '../components/ArticleCard';
 import ImportDialog from '../components/ImportDialog';
 import { mockArticles, groupArticlesByTime } from '../data/mockArticles';
 
-const ArticleList = ({ onArticleClick }) => {
+const ArticleList = ({ onArticleClick, onChangeMode }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   
@@ -20,18 +21,40 @@ const ArticleList = ({ onArticleClick }) => {
         padding: '20px',
       }}
     >
-      {/* 页面标题 */}
-      <Typography
-        variant="h5"
+      {/* 页面标题和模式切换 */}
+      <Box
         sx={{
-          fontSize: '24px',
-          fontWeight: 600,
-          color: 'var(--color-gray-100)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: '20px',
         }}
       >
-        文章列表
-      </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            fontSize: '24px',
+            fontWeight: 600,
+            color: 'var(--color-gray-100)',
+          }}
+        >
+          文章列表
+        </Typography>
+        <IconButton
+          onClick={onChangeMode}
+          sx={{
+            padding: '8px',
+            color: 'var(--color-gray-100)',
+            border: '1px solid var(--color-gray-40)',
+            borderRadius: '8px',
+            '&:hover': {
+              backgroundColor: 'var(--color-gray-20)',
+            },
+          }}
+        >
+          <TuneIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+      </Box>
 
       {/* 搜索框和添加按钮 */}
       <Box

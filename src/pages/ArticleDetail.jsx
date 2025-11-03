@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Box, Typography, IconButton, InputBase, Button, Chip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import LinkIcon from '@mui/icons-material/Link';
 import CommentItem from '../components/CommentItem';
 import { mockComments, countComments } from '../data/mockComments';
 
@@ -39,6 +38,11 @@ const ArticleDetail = ({ article, onBack }) => {
     time: '2分钟前更新',
     tags: ['# AI相关问题讨论', '# 资料收集'],
     image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop',
+    content: [
+      { type: 'text', value: 'OpenAI在最新的产品发布会上展示了令人震撼的多模态AI技术成果。这些技术能够同时处理文本、图像、音频等多种形式的信息。' },
+      { type: 'image', value: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=500&fit=crop' },
+      { type: 'text', value: '新一代的AI模型在理解和生成能力上都有显著提升，标志着人工智能技术进入了一个新的发展阶段。' }
+    ]
   };
 
   return (
@@ -136,55 +140,67 @@ const ArticleDetail = ({ article, onBack }) => {
           ))}
         </Box>
 
-        {/* 来源信息和查看原文 */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Box sx={{ display: 'flex', gap: '8px' }}>
-            <Typography
-              sx={{
-                fontSize: '12px',
-                color: 'var(--color-gray-60)',
-              }}
-            >
-              {displayArticle.source}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '12px',
-                color: 'var(--color-gray-60)',
-              }}
-            >
-              {displayArticle.time}
-            </Typography>
-          </Box>
-          <Box
+        {/* 来源信息 */}
+        <Box sx={{ display: 'flex', gap: '8px' }}>
+          <Typography
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              cursor: 'pointer',
-              '&:hover': {
-                opacity: 0.7,
-              },
+              fontSize: '12px',
+              color: 'var(--color-gray-60)',
             }}
           >
-            <LinkIcon sx={{ fontSize: 16, color: 'var(--color-gray-80)' }} />
-            <Typography
-              sx={{
-                fontSize: '13px',
-                color: 'var(--color-gray-80)',
-                fontWeight: 500,
-              }}
-            >
-              查看原文
-            </Typography>
-          </Box>
+            {displayArticle.source}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: '12px',
+              color: 'var(--color-gray-60)',
+            }}
+          >
+            {displayArticle.time}
+          </Typography>
         </Box>
+      </Box>
+
+      {/* 原文内容 */}
+      <Box
+        sx={{
+          padding: '20px',
+          borderBottom: '1px solid var(--color-gray-40)',
+        }}
+      >
+        {displayArticle.content && displayArticle.content.map((item, index) => {
+          if (item.type === 'text') {
+            return (
+              <Typography
+                key={index}
+                sx={{
+                  fontSize: '16px',
+                  lineHeight: 1.8,
+                  color: 'var(--color-gray-90)',
+                  marginBottom: '16px',
+                }}
+              >
+                {item.value}
+              </Typography>
+            );
+          } else if (item.type === 'image') {
+            return (
+              <Box
+                key={index}
+                component="img"
+                src={item.value}
+                alt="文章配图"
+                sx={{
+                  width: '100%',
+                  borderRadius: '4px',
+                  marginBottom: '16px',
+                  display: 'block',
+                }}
+              />
+            );
+          }
+          return null;
+        })}
       </Box>
 
       {/* 评论区 */}
