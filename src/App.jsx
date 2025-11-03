@@ -5,12 +5,14 @@ import ArticleList from './pages/ArticleList';
 import ArticleDetail from './pages/ArticleDetail';
 import ReadModeDetail from './pages/ReadModeDetail';
 import DeepReadDetail from './pages/DeepReadDetail';
+import FigmaReactTest from './pages/FigmaReactTest';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [readMode, setReadMode] = useState(null); // 'speed', 'read', 'deep'
   const [currentPage, setCurrentPage] = useState('list');
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [showFigmaTest, setShowFigmaTest] = useState(false);
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -32,8 +34,16 @@ function App() {
   };
 
   const handleBack = () => {
-    setCurrentPage('list');
-    setSelectedArticle(null);
+    if (showFigmaTest) {
+      setShowFigmaTest(false);
+    } else {
+      setCurrentPage('list');
+      setSelectedArticle(null);
+    }
+  };
+
+  const handleShowFigmaTest = () => {
+    setShowFigmaTest(true);
   };
 
   // 根据模式渲染不同的详情页组件
@@ -62,13 +72,20 @@ function App() {
 
   return (
     <>
-      {currentPage === 'list' && (
-        <ArticleList 
-          onArticleClick={handleArticleClick}
-          onChangeMode={handleChangeMode}
-        />
+      {showFigmaTest ? (
+        <FigmaReactTest />
+      ) : (
+        <>
+          {currentPage === 'list' && (
+            <ArticleList
+              onArticleClick={handleArticleClick}
+              onChangeMode={handleChangeMode}
+              onShowFigmaTest={handleShowFigmaTest}
+            />
+          )}
+          {currentPage === 'detail' && renderDetailPage()}
+        </>
       )}
-      {currentPage === 'detail' && renderDetailPage()}
     </>
   );
 }

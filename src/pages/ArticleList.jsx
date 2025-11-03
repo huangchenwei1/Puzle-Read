@@ -3,11 +3,12 @@ import { Box, Typography, InputBase, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import TuneIcon from '@mui/icons-material/Tune';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import ArticleCard from '../components/ArticleCard';
 import ImportDialog from '../components/ImportDialog';
 import { mockArticles, groupArticlesByTime } from '../data/mockArticles';
 
-const ArticleList = ({ onArticleClick, onChangeMode }) => {
+const ArticleList = ({ onArticleClick, onChangeMode, onShowFigmaTest }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   
@@ -53,6 +54,21 @@ const ArticleList = ({ onArticleClick, onChangeMode }) => {
           }}
         >
           <TuneIcon sx={{ fontSize: 20 }} />
+        </IconButton>
+        <IconButton
+          onClick={onShowFigmaTest}
+          sx={{
+            padding: '8px',
+            color: 'var(--color-gray-100)',
+            border: '1px solid var(--color-gray-40)',
+            borderRadius: '8px',
+            '&:hover': {
+              backgroundColor: 'var(--color-gray-20)',
+            },
+          }}
+          title="测试 Figma React 组件"
+        >
+          <BugReportIcon sx={{ fontSize: 20 }} />
         </IconButton>
       </Box>
 
