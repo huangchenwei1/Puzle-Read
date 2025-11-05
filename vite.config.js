@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     include: ['react', 'react-dom', 'styled-components'],
-    exclude: ['@figma-react/layout']
+    exclude: ['figma-react-layout']
   },
   resolve: {
     dedupe: ['react', 'react-dom']

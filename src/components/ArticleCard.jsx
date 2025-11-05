@@ -1,4 +1,4 @@
-import { StyleProvider, Box, Row, Column } from '@figma-react/layout';
+import { Box, Row, Column } from 'figma-react-layout';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
 const ArticleCard = ({ article }) => {
@@ -11,20 +11,20 @@ const ArticleCard = ({ article }) => {
         alignment="top-left"
       >
         {/* 左侧文字 */}
-          <h3
-            style={{
-              fontSize: '16px',
-              fontWeight: 600,
-              lineHeight: 1.5,
-              color: 'var(--color-gray-100)',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
-            {article.title}
-          </h3>
+        <h3
+          style={{
+            fontSize: '16px',
+            fontWeight: 600,
+            lineHeight: 1.5,
+            color: 'var(--color-gray-100)',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
+          {article.title}
+        </h3>
 
         {/* 右侧图片 */}
         <Box
