@@ -122,15 +122,14 @@ const FigmaReactTest = () => {
             fill="#f3e5f5"
             padding="15px"
             radius="8px"
-            spacing="10px"
+            gap="10px"
           >
             <Box
               width="100%"
               height="40px"
               fill="#9c27b0"
               radius="6px"
-              distribution="center"
-              alignment="center"
+              alignment="center-center"
             >
               <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>元素 1</span>
             </Box>
@@ -139,8 +138,7 @@ const FigmaReactTest = () => {
               height="40px"
               fill="#ba68c8"
               radius="6px"
-              distribution="center"
-              alignment="center"
+              alignment="center-center"
             >
               <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>元素 2</span>
             </Box>
@@ -155,16 +153,14 @@ const FigmaReactTest = () => {
             fill="#e8f5e8"
             padding="15px"
             radius="8px"
-            spacing="8px"
-            distribution="space-around"
+            gap="8px"
           >
             <Box
               width="50px"
               height="50px"
               fill="#4caf50"
               radius="6px"
-              distribution="center"
-              alignment="center"
+              alignment="center-center"
             >
               <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>A</span>
             </Box>
@@ -173,8 +169,7 @@ const FigmaReactTest = () => {
               height="50px"
               fill="#66bb6a"
               radius="6px"
-              distribution="center"
-              alignment="center"
+              alignment="center-center"
             >
               <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>B</span>
             </Box>
@@ -183,8 +178,7 @@ const FigmaReactTest = () => {
               height="50px"
               fill="#81c784"
               radius="6px"
-              distribution="center"
-              alignment="center"
+              alignment="center-center"
             >
               <span style={{ color: 'white', fontWeight: 'bold', fontSize: '12px' }}>C</span>
             </Box>
