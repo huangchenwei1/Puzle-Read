@@ -27,18 +27,17 @@ const ArticleCard = ({ article }) => {
         </h3>
 
         {/* 右侧图片 */}
-        <Box
-          width="60px"
-          height="60px"
-          radius="8px"
+        <img
+          src={article.image}
+          alt={article.title}
           style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '8px',
             flexShrink: 0,
-            backgroundImage: `url(${article.image})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            objectFit: 'cover',
             backgroundColor: '#f0f0f0'
           }}
-          alt={article.title}
         />
       </Row>
 
@@ -46,38 +45,22 @@ const ArticleCard = ({ article }) => {
       {article.topComment && (
         <Column
           width="fill"
-          fill="var(--color-gray-20)"
+          fill="$color-gray-20"
           padding="12px"
           radius="8px"
+          alignment='top-left'
         >
-          <Row
-            width="fill"
-            gap="6px"
-          >
-            <Box
-              width="4px"
-              height="4px"
-              radius="50%"
-              fill="var(--color-gray-60)"
-            />
-            <span
-              style={{
-                fontSize: '12px',
-                fontWeight: 600,
-                color: 'var(--color-gray-80)',
-              }}
-            >
-              {article.topComment.author}
-            </span>
-          </Row>
+          <span className="text-comment-author">
+            {article.topComment.author}：
+          </span>
           <p
             style={{
               fontSize: '13px',
               lineHeight: 1.5,
-              color: 'var(--color-gray-70)',
               WebkitLineClamp: 2,
               overflow: 'hidden',
             }}
+            className="text-gray-70"
           >
             {article.topComment.content}
           </p>
@@ -89,55 +72,20 @@ const ArticleCard = ({ article }) => {
         width="fill"
         distribution="space-between"
       >
-        <Row
-          alignment="center-center"
-          gap="8px"
-        >
-          <span
-            style={{
-              fontSize: '12px',
-              color: 'var(--color-gray-60)',
-              fontWeight: 500,
-            }}
-          >
+        <Row gap="8px">
+          <span className="text-secondary-medium">
             {article.source}
           </span>
-          <Box
-            width="2px"
-            height="2px"
-            radius="50%"
-            fill="var(--color-gray-60)"
-          />
-          <span
-            style={{
-              fontSize: '12px',
-              color: 'var(--color-gray-60)',
-            }}
-          >
-            {article.time}
+          <span className="text-xs text-gray-60">
+            •
           </span>
+          <time className="text-secondary">
+            {article.time}
+          </time>
         </Row>
-        <Row
-          alignment="center-center"
-          gap="4px"
-        >
-          <Box
-            style={{
-              fontSize: '12px',
-              color: 'var(--color-gray-60)',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <ChatBubbleOutlineIcon />
-          </Box>
-          <span
-            style={{
-              fontSize: '12px',
-              color: 'var(--color-gray-60)',
-              fontWeight: 500,
-            }}
-          >
+        <Row gap="4px">
+          <ChatBubbleOutlineIcon sx={{ fontSize: '12px', color: 'var(--color-gray-60)' }} />
+          <span className="text-secondary-medium">
             {article.comments}
           </span>
         </Row>
