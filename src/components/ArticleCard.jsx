@@ -1,4 +1,4 @@
-import { Box, Row, Column } from 'figma-react-layout';
+import { Row, Column } from 'figma-react-layout';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
 const ArticleCard = ({ article }) => {
@@ -11,28 +11,54 @@ const ArticleCard = ({ article }) => {
         alignment="top-left"
       >
         {/* 左侧文字 */}
-        <h3
-          style={{
-            fontSize: '16px',
-            fontWeight: 600,
-            lineHeight: 1.5,
-            color: 'var(--color-gray-100)',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {article.title}
-        </h3>
+        <Column>
+          <h3
+            style={{
+              fontSize: '16px',
+              fontWeight: 600,
+              lineHeight: 1.5,
+              color: 'var(--color-gray-100)',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {article.title}
+          </h3>
+
+          {/* 信息栏 */}
+          <Row
+            width="fill"
+            distribution="space-between"
+          >
+            <Row gap="8px">
+              <span className="text-secondary-medium">
+                {article.source}
+              </span>
+              <span className="text-xs text-gray-60">
+                •
+              </span>
+              <time className="text-secondary">
+                {article.time}
+              </time>
+            </Row>
+            <Row gap="4px">
+              <ChatBubbleOutlineIcon sx={{ fontSize: '12px', color: 'var(--color-gray-60)' }} />
+              <span className="text-secondary-medium">
+                {article.comments}
+              </span>
+            </Row>
+          </Row>
+        </Column>
 
         {/* 右侧图片 */}
         <img
           src={article.image}
           alt={article.title}
           style={{
-            width: '60px',
-            height: '60px',
+            width: '72px',
+            height: '72px',
             borderRadius: '8px',
             flexShrink: 0,
             objectFit: 'cover',
@@ -50,9 +76,7 @@ const ArticleCard = ({ article }) => {
           radius="8px"
           alignment='top-left'
         >
-          <span className="text-comment-author">
-            {article.topComment.author}：
-          </span>
+
           <p
             style={{
               fontSize: '13px',
@@ -62,34 +86,13 @@ const ArticleCard = ({ article }) => {
             }}
             className="text-gray-70"
           >
+            <span className="text-comment-author">
+              {article.topComment.author}：
+            </span>
             {article.topComment.content}
           </p>
         </Column>
       )}
-
-      {/* 底部信息栏 */}
-      <Row
-        width="fill"
-        distribution="space-between"
-      >
-        <Row gap="8px">
-          <span className="text-secondary-medium">
-            {article.source}
-          </span>
-          <span className="text-xs text-gray-60">
-            •
-          </span>
-          <time className="text-secondary">
-            {article.time}
-          </time>
-        </Row>
-        <Row gap="4px">
-          <ChatBubbleOutlineIcon sx={{ fontSize: '12px', color: 'var(--color-gray-60)' }} />
-          <span className="text-secondary-medium">
-            {article.comments}
-          </span>
-        </Row>
-      </Row>
     </Column>
   );
 };
