@@ -1,7 +1,19 @@
 import { Row, Column } from 'figma-react-layout';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import { getArticleReplies } from '../data/mockArticles';
 
-const ArticleCard = ({ article }) => {
+const ArticleCard = ({ article, onReplyClick }) => {
+  // 获取文章的所有回复
+  const allReplies = getArticleReplies(article.id);
+
+  // 处理点击评论区域
+  const handleCommentClick = (comment, event) => {
+    event.stopPropagation(); // 阻止事件冒泡，防止触发文章点击
+    if (onReplyClick) {
+      onReplyClick(article, comment);
+    }
+  };
+
   return (
     <Column width="fill" gap="16px" padding="y:24px" strokeColor='bottom:#f0f0f0'>
       {/* 上半部分：图片和标题 */}
@@ -66,21 +78,33 @@ const ArticleCard = ({ article }) => {
       </Row>
 
       {/* 评论预览区 */}
-      {article.topComment && (
-        <Column
-          width="fill"
-          fill="$color-gray-20"
-          padding="12px"
-          radius="8px"
-          alignment='top-left'
+      <Column
+        width="fill"
+        fill="var(--color-gray-10)"
+        padding="12px"
+        radius="8px"
+        alignment="top-left"
+        className="comment-preview-container"
+      >
+        {/* 显示原始评论 */}
+        <div
+          onClick={(e) => handleCommentClick(article.topComment, e)}
+          data-comment-area="true"
+          data-comment-id="original"
+          style={{
+            cursor: 'pointer',
+            width: '100%'
+          }}
         >
-
           <p
             style={{
               fontSize: '13px',
               lineHeight: 1.5,
               WebkitLineClamp: 2,
               overflow: 'hidden',
+              margin: 0,
+              textAlign: 'left',
+              width: '100%'
             }}
             className="text-gray-70"
           >
@@ -89,6 +113,86 @@ const ArticleCard = ({ article }) => {
             </span>
             {article.topComment.content}
           </p>
+        </div>
+
+        {/* 显示所有用户回复 */}
+        {allReplies.length > 0 && (
+          <>
+            {allReplies.map((reply, index) => (
+              <div
+                key={reply.id || index}
+                onClick={(e) => handleCommentClick(reply, e)}
+                data-comment-area="true"
+                data-comment-id={reply.id || index}
+                style={{
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '13px',
+                    lineHeight: 1.5,
+                    WebkitLineClamp: 2,
+                    overflow: 'hidden',
+                    margin: '8px 0 0 0',
+                    textAlign: 'left',
+                    width: '100%'
+                  }}
+                  className="text-gray-70"
+                >
+                  <span className="text-comment-author">
+                    {reply.author}回复{reply.author === reply.replyToAuthor ? '我' : reply.replyToAuthor}：
+                  </span>
+                  {reply.content}
+                </p>
+              </div>
+            ))}
+          </>
+        )}
+      </Column>
+
+      {/* 如果没有原始评论但有用户回复，显示用户回复 */}
+      {!article.topComment && allReplies.length > 0 && (
+        <Column
+          width="fill"
+          fill="var(--color-gray-10)"
+          padding="12px"
+          radius="8px"
+          alignment="top-left"
+          className="comment-preview-container"
+        >
+          {/* 显示所有用户回复 */}
+          {allReplies.map((reply, index) => (
+            <div
+              key={reply.id || index}
+              onClick={(e) => handleCommentClick(reply, e)}
+              data-comment-area="true"
+              data-comment-id={reply.id || index}
+              style={{
+                cursor: 'pointer',
+                width: '100%'
+              }}
+            >
+              <p
+                style={{
+                  fontSize: '13px',
+                  lineHeight: 1.5,
+                  WebkitLineClamp: 2,
+                  overflow: 'hidden',
+                  margin: index > 0 ? '8px 0 0 0' : 0,
+                  textAlign: 'left',
+                  width: '100%'
+                }}
+                className="text-gray-70"
+              >
+                <span className="text-comment-author">
+                  {reply.author}回复{reply.author === reply.replyToAuthor ? '我' : reply.replyToAuthor}：
+                </span>
+                {reply.content}
+              </p>
+            </div>
+          ))}
         </Column>
       )}
     </Column>

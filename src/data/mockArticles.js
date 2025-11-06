@@ -267,3 +267,97 @@ export const groupArticlesByTime = (articles) => {
   return groups;
 };
 
+// localStorage 键名
+const REPLIES_STORAGE_KEY = 'puzle_read_article_replies';
+const REPLY_ID_COUNTER_KEY = 'puzle_read_reply_id_counter';
+
+// 初始化回复数据存储
+const initializeArticleReplies = () => {
+  const storedReplies = localStorage.getItem(REPLIES_STORAGE_KEY);
+  if (storedReplies) {
+    try {
+      return JSON.parse(storedReplies);
+    } catch (error) {
+      console.error('解析存储的回复数据失败:', error);
+    }
+  }
+
+  // 如果没有存储数据，初始化为空数组
+  const initialReplies = {
+    1: [], // 文章1的回复
+    2: [], // 文章2的回复
+    3: [], // 文章3的回复
+    4: [], // 文章4的回复
+    5: [], // 文章5的回复
+    6: [], // 文章6的回复
+    7: [], // 文章7的回复
+    8: [], // 文章8的回复
+    9: [], // 文章9的回复
+    10: [] // 文章10的回复
+  };
+  saveArticleReplies(initialReplies);
+  return initialReplies;
+};
+
+// 获取回复数据
+export const getArticleRepliesStorage = () => {
+  return initializeArticleReplies();
+};
+
+// 保存回复数据到 localStorage
+const saveArticleReplies = (replies) => {
+  try {
+    localStorage.setItem(REPLIES_STORAGE_KEY, JSON.stringify(replies));
+  } catch (error) {
+    console.error('保存回复数据失败:', error);
+  }
+};
+
+// 获取文章的所有回复
+export const getArticleReplies = (articleId) => {
+  const replies = getArticleRepliesStorage();
+  return replies[articleId] || [];
+};
+
+// 生成唯一ID
+const generateReplyId = () => {
+  let counter = localStorage.getItem(REPLY_ID_COUNTER_KEY);
+  if (!counter) {
+    counter = 1000;
+  } else {
+    counter = parseInt(counter) + 1;
+  }
+  localStorage.setItem(REPLY_ID_COUNTER_KEY, counter.toString());
+  return counter;
+};
+
+// 添加回复到文章
+export const addReplyToArticle = (articleId, replyData) => {
+  const replies = getArticleRepliesStorage();
+
+  if (!replies[articleId]) {
+    replies[articleId] = [];
+  }
+
+  const newReply = {
+    id: generateReplyId(),
+    author: '我',
+    content: replyData.content,
+    time: '刚刚',
+    isMe: true,
+    isPuzle: false,
+    likes: 0,
+    replies: [],
+    replyTo: replyData.replyTo || '未知用户',
+    replyToAuthor: replyData.replyToAuthor || replyData.replyTo || '未知用户',
+    originalComment: replyData.originalComment || ''
+  };
+
+  replies[articleId].push(newReply);
+  saveArticleReplies(replies);
+  return newReply;
+};
+
+// 为了向后兼容，导出一个空的 articleReplies 对象
+export const articleReplies = {};
+
