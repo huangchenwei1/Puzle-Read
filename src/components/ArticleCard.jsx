@@ -38,19 +38,21 @@ const ArticleCard = ({ article, onReplyClick }) => {
           {article.title}
         </h3>
 
-        {/* 右侧图片 */}
-        <img
-          src={article.image}
-          alt={article.title}
-          style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '8px',
-            flexShrink: 0,
-            objectFit: 'cover',
-            backgroundColor: '#f0f0f0'
-          }}
-        />
+        {/* 右侧图片 - 只有当图片存在时才显示 */}
+        {article.image && (
+          <img
+            src={article.image}
+            alt={article.title}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '8px',
+              flexShrink: 0,
+              objectFit: 'cover',
+              backgroundColor: '#f0f0f0'
+            }}
+          />
+        )}
       </Row>
 
       {/* 信息栏 */}
