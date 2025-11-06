@@ -1,9 +1,12 @@
+// 导入评论数据相关函数
+import { getArticleComments } from './mockComments';
+
 // 模拟文章数据
 export const mockArticles = [
   // 今天
   {
     id: 1,
-    title: 'Vue 3 新特性',
+    title: 'Vue 3 新特性: Composition API ',
     image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop',
     source: '前端开发者',
     time: '2小时前',
@@ -284,8 +287,38 @@ const saveArticleReplies = (replies) => {
 
 // 获取文章的所有回复
 export const getArticleReplies = (articleId) => {
-  const replies = getArticleRepliesStorage();
-  return replies[articleId] || [];
+  // 首先尝试从localStorage获取用户回复
+  const storedReplies = getArticleRepliesStorage();
+  const userReplies = storedReplies[articleId] || [];
+
+  // 如果有用户回复，返回用户回复
+  if (userReplies.length > 0) {
+    return userReplies;
+  }
+
+  // 如果没有用户回复，返回静态mock评论数据用于预览
+  // 这里需要将评论数据扁平化为回复格式
+  const articleComments = getArticleComments(articleId);
+
+  // 将评论转换为回复格式以便在ArticleCard中显示
+  const flattenedReplies = [];
+  articleComments.forEach(comment => {
+    flattenedReplies.push(comment);
+    // 添加嵌套回复
+    if (comment.replies && comment.replies.length > 0) {
+      const flattenNestedReplies = (replies) => {
+        replies.forEach(reply => {
+          flattenedReplies.push(reply);
+          if (reply.replies && reply.replies.length > 0) {
+            flattenNestedReplies(reply.replies);
+          }
+        });
+      };
+      flattenNestedReplies(comment.replies);
+    }
+  });
+
+  return flattenedReplies;
 };
 
 // 生成唯一ID
@@ -329,4 +362,3 @@ export const addReplyToArticle = (articleId, replyData) => {
 
 // 为了向后兼容，导出一个空的 articleReplies 对象
 export const articleReplies = {};
-

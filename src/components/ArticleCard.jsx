@@ -1,10 +1,24 @@
 import { Row, Column } from 'figma-react-layout';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
-import { getArticleReplies } from '../data/mockArticles';
+import { getArticleComments } from '../data/mockComments';
 
 const ArticleCard = ({ article, onReplyClick }) => {
-  // 获取文章的所有回复
-  const allReplies = getArticleReplies(article.id);
+  // 获取文章的所有评论
+  const allComments = getArticleComments(article.id);
+
+  // 递归扁平化评论数据
+  const flattenComments = (comments) => {
+    const flat = [];
+    comments.forEach(comment => {
+      flat.push(comment);
+      if (comment.replies && comment.replies.length > 0) {
+        flat.push(...flattenComments(comment.replies));
+      }
+    });
+    return flat;
+  };
+
+  const flattenedComments = flattenComments(allComments);
 
   // 处理点击评论区域
   const handleCommentClick = (comment, event) => {
@@ -80,97 +94,20 @@ const ArticleCard = ({ article, onReplyClick }) => {
       </Row>
 
       {/* 评论预览区 */}
-      <Column
-        width="fill"
-        fill="var(--color-gray-10)"
-        padding="12px"
-        radius="8px"
-        alignment="top-left"
-        className="comment-preview-container"
-      >
-        {/* 显示原始评论 */}
-        <div
-          onClick={(e) => handleCommentClick(article.topComment, e)}
-          data-comment-area="true"
-          data-comment-id="original"
-          style={{
-            cursor: 'pointer',
-            width: '100%'
-          }}
-        >
-          <p
-            style={{
-              fontSize: '13px',
-              lineHeight: 1.5,
-              WebkitLineClamp: 2,
-              overflow: 'hidden',
-              margin: 0,
-              textAlign: 'left',
-              width: '100%'
-            }}
-            className="text-gray-70"
-          >
-            <span className="text-comment-author">
-              {article.topComment.author}：
-            </span>
-            {article.topComment.content}
-          </p>
-        </div>
-
-        {/* 显示所有用户回复 */}
-        {allReplies.length > 0 && (
-          <>
-            {allReplies.map((reply, index) => (
-              <div
-                key={reply.id || index}
-                onClick={(e) => handleCommentClick(reply, e)}
-                data-comment-area="true"
-                data-comment-id={reply.id || index}
-                style={{
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: '13px',
-                    lineHeight: 1.5,
-                    WebkitLineClamp: 2,
-                    overflow: 'hidden',
-                    margin: '8px 0 0 0',
-                    textAlign: 'left',
-                    width: '100%'
-                  }}
-                  className="text-gray-70"
-                >
-                  <span className="text-comment-author">
-                    {reply.author}回复{reply.author === reply.replyToAuthor ? '我' : reply.replyToAuthor}：
-                  </span>
-                  {reply.content}
-                </p>
-              </div>
-            ))}
-          </>
-        )}
-      </Column>
-
-      {/* 如果没有原始评论但有用户回复，显示用户回复 */}
-      {!article.topComment && allReplies.length > 0 && (
+      {flattenedComments.length > 0 && (
         <Column
           width="fill"
           fill="var(--color-gray-10)"
           padding="12px"
           radius="8px"
           alignment="top-left"
-          className="comment-preview-container"
         >
-          {/* 显示所有用户回复 */}
-          {allReplies.map((reply, index) => (
+          {flattenedComments.map((comment, index) => (
             <div
-              key={reply.id || index}
-              onClick={(e) => handleCommentClick(reply, e)}
+              key={comment.id || index}
+              onClick={(e) => handleCommentClick(comment, e)}
               data-comment-area="true"
-              data-comment-id={reply.id || index}
+              data-comment-id={comment.id || index}
               style={{
                 cursor: 'pointer',
                 width: '100%'
@@ -189,9 +126,19 @@ const ArticleCard = ({ article, onReplyClick }) => {
                 className="text-gray-70"
               >
                 <span className="text-comment-author">
-                  {reply.author}回复{reply.author === reply.replyToAuthor ? '我' : reply.replyToAuthor}：
+                  {comment.author}
+                  {comment.replyToAuthor && comment.author !== comment.replyToAuthor && (
+                    <>
+                      {' '}回复{' '}
+                      {comment.replyToAuthor === '我' ? '我' : comment.replyToAuthor}
+                      {'：'}
+                    </>
+                  )}
+                  {(!comment.replyToAuthor || comment.author === comment.replyToAuthor) && (
+                    '：'
+                  )}
                 </span>
-                {reply.content}
+                {comment.content}
               </p>
             </div>
           ))}

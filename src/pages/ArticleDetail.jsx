@@ -3,10 +3,10 @@ import { Box, Typography, IconButton, InputBase, Button, Chip } from '@mui/mater
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import CommentItem from '../components/CommentItem';
-import { mockComments, countComments } from '../data/mockComments';
+import { getArticleComments, countComments } from '../data/mockComments';
 
 const ArticleDetail = ({ article, onBack }) => {
-  const [comments, setComments] = useState(mockComments);
+  const [comments, setComments] = useState(getArticleComments(article.id));
   const [commentText, setCommentText] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
 

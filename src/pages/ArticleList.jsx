@@ -58,14 +58,14 @@ const ArticleList = ({ onArticleClick, onChangeMode, onShowFigmaTest }) => {
   };
 
   return (
-    <Column padding="20px">
+    <Column padding="x:20px y:12px">
       {/* 页面标题和模式切换 */}
       <Row
         width="fill"
         distribution="space-between"
         alignment="center-center"
         strokeColor='bottom:#000'
-        padding="bottom:16px"
+        padding="bottom:12px"
       >
         <Typography
           variant="h5"
