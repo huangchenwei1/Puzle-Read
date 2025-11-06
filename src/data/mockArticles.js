@@ -244,7 +244,6 @@ const clearOldRepliesData = () => {
   try {
     localStorage.removeItem(REPLIES_STORAGE_KEY);
     localStorage.removeItem(REPLY_ID_COUNTER_KEY);
-    console.log('已清除旧的回复数据');
   } catch (error) {
     console.error('清除旧数据失败:', error);
   }
@@ -264,16 +263,8 @@ const initializeArticleReplies = () => {
 
   // 没有数据时创建初始数据
   const initialReplies = {
-    1: [], // 文章1的回复
-    2: [], // 文章2的回复
-    3: [], // 文章3的回复
-    4: [], // 文章4的回复
-    5: [], // 文章5的回复
-    6: [], // 文章6的回复
-    7: [], // 文章7的回复
-    8: [], // 文章8的回复
-    9: [], // 文章9的回复
-    10: [] // 文章10的回复
+    1: [], 2: [], 3: [], 4: [], 5: [],
+    6: [], 7: [], 8: [], 9: [], 10: []
   };
   saveArticleReplies(initialReplies);
   return initialReplies;
@@ -295,21 +286,31 @@ const saveArticleReplies = (replies) => {
 
 // 获取文章的所有回复
 export const getArticleReplies = (articleId) => {
-  console.log('🔄 getArticleReplies 获取文章回复，文章ID:', articleId);
-
-  // 1. 首先获取静态mock评论数据作为基础
+  // 1. 获取静态mock评论数据
   const articleComments = getArticleComments(articleId);
-  console.log('- 静态评论数量:', articleComments.length);
 
-  // 2. 将静态评论数据扁平化
+  // 2. 将静态评论数据扁平化（添加去重机制）
   const flattenedReplies = [];
+  const processedIds = new Set();
+
   articleComments.forEach(comment => {
-    flattenedReplies.push(comment);
+    // 添加主评论，避免重复
+    if (!processedIds.has(comment.id)) {
+      flattenedReplies.push(comment);
+      processedIds.add(comment.id);
+    }
+
     // 添加嵌套回复
     if (comment.replies && comment.replies.length > 0) {
       const flattenNestedReplies = (replies) => {
         replies.forEach(reply => {
-          flattenedReplies.push(reply);
+          // 只有未处理过的评论才添加
+          if (!processedIds.has(reply.id)) {
+            flattenedReplies.push(reply);
+            processedIds.add(reply.id);
+          }
+
+          // 递归处理更深层的回复
           if (reply.replies && reply.replies.length > 0) {
             flattenNestedReplies(reply.replies);
           }
@@ -319,18 +320,16 @@ export const getArticleReplies = (articleId) => {
     }
   });
 
-  // 3. 获取用户回复数据
+  // 3. 获取用户回复数据并合并（去重）
   const storedReplies = getArticleRepliesStorage();
   const userReplies = storedReplies[articleId] || [];
-  console.log('- 用户回复数量:', userReplies.length);
 
-  // 4. 将用户回复追加到静态评论后面
   userReplies.forEach(userReply => {
-    flattenedReplies.push(userReply);
+    if (!processedIds.has(userReply.id)) {
+      flattenedReplies.push(userReply);
+      processedIds.add(userReply.id);
+    }
   });
-
-  console.log('- 合并后总评论数:', flattenedReplies.length);
-  console.log('- 最终评论数据:', flattenedReplies);
 
   return flattenedReplies;
 };
@@ -373,6 +372,3 @@ export const addReplyToArticle = (articleId, replyData) => {
   saveArticleReplies(replies);
   return newReply;
 };
-
-// 为了向后兼容，导出一个空的 articleReplies 对象
-export const articleReplies = {};

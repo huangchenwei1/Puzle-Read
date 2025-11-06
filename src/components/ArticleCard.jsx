@@ -1,51 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Row, Column } from 'figma-react-layout';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import { getArticleReplies } from '../data/mockArticles';
-import { getArticleComments } from '../data/mockComments';
 
 const ArticleCard = ({ article, onReplyClick, refreshKey, onClick }) => {
-  const [allComments, setAllComments] = useState([]);
-
-  // 响应式获取评论数据
-  useEffect(() => {
-    console.log('🔄 ArticleCard 获取评论数据，refreshKey:', refreshKey);
-
-    const userReplies = getArticleReplies(article.id);
-    const comments = userReplies.length > 0 ? userReplies : getArticleComments(article.id);
-
-    console.log('- 文章ID:', article.id);
-    console.log('- 用户回复数:', userReplies.length);
-    console.log('- 静态评论数:', getArticleComments(article.id).length);
-    console.log('- 使用数据源:', userReplies.length > 0 ? '用户回复数据' : '静态mock数据');
-    console.log('- 最终评论数据:', comments);
-
-    setAllComments(comments);
+  // 使用 useMemo 缓存评论数据，避免重复计算
+  const flattenedComments = useMemo(() => {
+    return getArticleReplies(article.id);
   }, [article.id, refreshKey]);
-
-  // 递归扁平化评论数据
-  const flattenComments = (comments) => {
-    const flat = [];
-    comments.forEach(comment => {
-      flat.push(comment);
-      if (comment.replies && comment.replies.length > 0) {
-        flat.push(...flattenComments(comment.replies));
-      }
-    });
-    return flat;
-  };
-
-  const flattenedComments = flattenComments(allComments);
-
-  console.log('📊 ArticleCard 最终数据');
-  console.log('- 评论数量:', allComments.length);
-  console.log('- 扁平化后数量:', flattenedComments.length);
-  console.log('- 评论数据样本:', flattenedComments.slice(0, 2));
 
   // 处理点击评论区域
   const handleCommentClick = (comment, event) => {
-    console.log('🔍 评论点击事件触发');
-    event.stopPropagation(); // 阻止事件冒泡，防止触发文章点击
+    event.stopPropagation();
     if (onReplyClick) {
       onReplyClick(article, comment);
     }
@@ -53,18 +19,12 @@ const ArticleCard = ({ article, onReplyClick, refreshKey, onClick }) => {
 
   // 处理评论预览区域点击（不点击具体评论时）
   const handleCommentAreaClick = (event) => {
-    console.log('🔍 评论预览区域点击事件触发');
-    event.stopPropagation(); // 阻止事件冒泡，防止触发文章点击
+    event.stopPropagation();
     // 评论区域不进行页面导航，只处理具体评论的回复点击
-    console.log('📝 评论区域点击被阻止，不会触发页面导航 - 已验证修复');
   };
 
   // 处理点击文章卡片
   const handleArticleClick = () => {
-    console.log('🔍 文章卡片点击事件触发');
-    console.log('- 点击的文章:', article.title);
-    console.log('- 传递的article对象:', article);
-
     if (onClick) {
       onClick(article);
     }
@@ -72,15 +32,13 @@ const ArticleCard = ({ article, onReplyClick, refreshKey, onClick }) => {
 
   // 处理点击标题区域
   const handleTitleClick = (event) => {
-    console.log('🔍 标题区域点击事件触发');
-    event.stopPropagation(); // 阻止事件冒泡，但直接调用文章点击
+    event.stopPropagation();
     handleArticleClick();
   };
 
   // 处理点击图片区域
   const handleImageClick = (event) => {
-    console.log('🔍 图片区域点击事件触发');
-    event.stopPropagation(); // 阻止事件冒泡，但直接调用文章点击
+    event.stopPropagation();
     handleArticleClick();
   };
 
@@ -189,7 +147,6 @@ const ArticleCard = ({ article, onReplyClick, refreshKey, onClick }) => {
                   lineHeight: 1.5,
                   WebkitLineClamp: 2,
                   overflow: 'hidden',
-                  margin: index > 0 ? '8px 0 0 0' : 0,
                   textAlign: 'left',
                   width: '100%'
                 }}

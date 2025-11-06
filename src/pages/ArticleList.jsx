@@ -39,8 +39,6 @@ const ArticleList = ({ onArticleClick, onChangeMode, onShowFigmaTest }) => {
 
   // 处理回复成功
   const handleReplyAdded = (articleId, newReply) => {
-    console.log('🔄 ArticleList 收到新回复，触发刷新:', newReply);
-
     // 更新评论数量
     setArticles(prevArticles =>
       prevArticles.map(article => {
@@ -56,7 +54,6 @@ const ArticleList = ({ onArticleClick, onChangeMode, onShowFigmaTest }) => {
 
     // 强制刷新评论显示
     setRefreshKey(prev => prev + 1);
-    console.log('✅ 触发评论刷新，refreshKey:', refreshKey + 1);
   };
 
   return (

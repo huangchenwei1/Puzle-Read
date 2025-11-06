@@ -29,31 +29,18 @@ export const mockComments = {
           likes: 2,
           replyTo: 'Puzle',
           replyToAuthor: 'Puzle',
-          replies: [
-            {
-              id: 7,
-              author: 'Puzle',
-              isPuzle: true,
-              time: '30分钟前',
-              content: '回复 我：你提到了一个很好的点！计算复杂度确实是O(n²)，这正是为什么需要算法优化的原因。除了FlashAttention，还有稀疏注意力、局部注意力等方案。另外，硬件层面的优化也很重要，比如专门针对Transformer架构的芯片设计。',
-              likes: 12,
-              replyTo: '我',
-              replyToAuthor: '我',
-              replies: [
-                {
-                  id: 8,
-                  author: '我',
-                  isMe: true,
-                  time: '26分钟前',
-                  content: '感谢Puzle的详细解答！硬件加速确实很有意思，有没有了解过哪些具体的实现方案？',
-                  likes: 1,
-                  replyTo: 'Puzle',
-                  replyToAuthor: 'Puzle',
-                  replies: []
-                }
-              ]
-            }
-          ]
+          replies: []
+        },
+        {
+          id: 7,
+          author: 'Puzle',
+          isPuzle: true,
+          time: '30分钟前',
+          content: '回复 我：你提到了一个很好的点！计算复杂度确实是O(n²)，这正是为什么需要算法优化的原因。除了FlashAttention，还有稀疏注意力、局部注意力等方案。另外，硬件层面的优化也很重要，比如专门针对Transformer架构的芯片设计。',
+          likes: 12,
+          replyTo: '我',
+          replyToAuthor: '我',
+          replies: []
         }
       ]
     }
