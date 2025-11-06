@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { Box, Typography, InputBase, IconButton } from '@mui/material';
+import { Typography, IconButton } from '@mui/material';
 import { Row, Column } from 'figma-react-layout';
-import TuneIcon from '@mui/icons-material/Tune';
-import BugReportIcon from '@mui/icons-material/BugReport';
 import ArticleCard from '../components/ArticleCard';
 import GlobalReplyInput from '../components/GlobalReplyInput';
 import ImportDialog from '../components/ImportDialog';
@@ -17,6 +15,7 @@ const ArticleList = ({ onArticleClick, onChangeMode, onShowFigmaTest }) => {
     replyToComment: null
   });
   const [articles, setArticles] = useState(mockArticles);
+  const [refreshKey, setRefreshKey] = useState(0); // 用于强制刷新评论显示
 
   const groupedArticles = groupArticlesByTime(articles);
 
@@ -40,21 +39,24 @@ const ArticleList = ({ onArticleClick, onChangeMode, onShowFigmaTest }) => {
 
   // 处理回复成功
   const handleReplyAdded = (articleId, newReply) => {
-    console.log('ArticleList 收到新回复:', newReply);
+    console.log('🔄 ArticleList 收到新回复，触发刷新:', newReply);
 
-    // 只更新评论数量，保留原始的 topComment 不变
+    // 更新评论数量
     setArticles(prevArticles =>
       prevArticles.map(article => {
         if (article.id === articleId) {
           return {
             ...article,
             comments: article.comments + 1
-            // 不再覆盖 topComment，保留原始评论
           };
         }
         return article;
       })
     );
+
+    // 强制刷新评论显示
+    setRefreshKey(prev => prev + 1);
+    console.log('✅ 触发评论刷新，refreshKey:', refreshKey + 1);
   };
 
   return (
@@ -93,37 +95,16 @@ const ArticleList = ({ onArticleClick, onChangeMode, onShowFigmaTest }) => {
         if (articles.length === 0) return null;
 
         return (
-          <Column key={timeGroup} marginBottom="32px" gap='0'>
-            {/* 时间分组标题 */}
-            {/* <Row
-              width="fill"
-              alignment="center-left"
-              padding="top:24px"
-            >
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  marginRight: '12px',
-                }}
-                className="text-gray-60"
-              >
-                {timeGroup}
-              </Typography>
-            </Row>*/}
-
-            {/* 该时间组的文章列表 */}
-            <Column>
-              {articles.map((article) => (
-                <div key={article.id} onClick={() => onArticleClick && onArticleClick(article)}>
-                  <ArticleCard
-                    article={article}
-                    onReplyClick={handleReplyClick}
-                  />
-                </div>
-              ))}
-            </Column>
+          <Column width='fill' key={timeGroup}>
+            {articles.map((article) => (
+              <ArticleCard
+                article={article}
+                onReplyClick={handleReplyClick}
+                refreshKey={refreshKey}
+                key={article.id}
+                onClick={() => onArticleClick && onArticleClick(article)}
+              />
+            ))}
           </Column>
         );
       })}

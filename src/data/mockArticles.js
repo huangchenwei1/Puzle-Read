@@ -119,7 +119,7 @@ export const mockArticles = [
   // 本周
   {
     id: 6,
-    title: '从零开始学习 WebGL 着色器编程技术与3D渲染实战',
+    title: '从零开始学习 WebGL 着色器编程技术',
     image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=250&fit=crop',
     source: '图形学爱好者',
     time: '3天前',
@@ -250,11 +250,19 @@ const clearOldRepliesData = () => {
   }
 };
 
-// 初始化回复数据存储
+// 初始化回复数据存储（仅在数据不存在时）
 const initializeArticleReplies = () => {
-  // 清除旧数据以确保使用新的mock数据
-  clearOldRepliesData();
+  // 检查是否已有数据
+  const existingData = localStorage.getItem(REPLIES_STORAGE_KEY);
+  if (existingData) {
+    try {
+      return JSON.parse(existingData);
+    } catch (error) {
+      console.error('解析现有回复数据失败:', error);
+    }
+  }
 
+  // 没有数据时创建初始数据
   const initialReplies = {
     1: [], // 文章1的回复
     2: [], // 文章2的回复
@@ -287,20 +295,13 @@ const saveArticleReplies = (replies) => {
 
 // 获取文章的所有回复
 export const getArticleReplies = (articleId) => {
-  // 首先尝试从localStorage获取用户回复
-  const storedReplies = getArticleRepliesStorage();
-  const userReplies = storedReplies[articleId] || [];
+  console.log('🔄 getArticleReplies 获取文章回复，文章ID:', articleId);
 
-  // 如果有用户回复，返回用户回复
-  if (userReplies.length > 0) {
-    return userReplies;
-  }
-
-  // 如果没有用户回复，返回静态mock评论数据用于预览
-  // 这里需要将评论数据扁平化为回复格式
+  // 1. 首先获取静态mock评论数据作为基础
   const articleComments = getArticleComments(articleId);
+  console.log('- 静态评论数量:', articleComments.length);
 
-  // 将评论转换为回复格式以便在ArticleCard中显示
+  // 2. 将静态评论数据扁平化
   const flattenedReplies = [];
   articleComments.forEach(comment => {
     flattenedReplies.push(comment);
@@ -317,6 +318,19 @@ export const getArticleReplies = (articleId) => {
       flattenNestedReplies(comment.replies);
     }
   });
+
+  // 3. 获取用户回复数据
+  const storedReplies = getArticleRepliesStorage();
+  const userReplies = storedReplies[articleId] || [];
+  console.log('- 用户回复数量:', userReplies.length);
+
+  // 4. 将用户回复追加到静态评论后面
+  userReplies.forEach(userReply => {
+    flattenedReplies.push(userReply);
+  });
+
+  console.log('- 合并后总评论数:', flattenedReplies.length);
+  console.log('- 最终评论数据:', flattenedReplies);
 
   return flattenedReplies;
 };

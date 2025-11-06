@@ -29,8 +29,16 @@ function App() {
   };
 
   const handleArticleClick = (article) => {
+    console.log('🔍 App.handleArticleClick 被调用');
+    console.log('- 接收到的文章:', article);
+    console.log('- 当前页面状态:', currentPage);
+
     setSelectedArticle(article);
     setCurrentPage('detail');
+
+    console.log('✅ 页面状态已更新');
+    console.log('- 新的selectedArticle:', article);
+    console.log('- 新的currentPage:', 'detail');
   };
 
   const handleBack = () => {
@@ -48,6 +56,10 @@ function App() {
 
   // 根据模式渲染不同的详情页组件
   const renderDetailPage = () => {
+    console.log('🔍 renderDetailPage 被调用');
+    console.log('- readMode:', readMode);
+    console.log('- selectedArticle:', selectedArticle);
+
     switch (readMode) {
       case 'speed':
         return <ArticleDetail article={selectedArticle} onBack={handleBack} />;
@@ -69,6 +81,11 @@ function App() {
   if (!readMode) {
     return <ModeSelect onSelectMode={handleSelectMode} />;
   }
+
+  console.log('🔍 App 组件渲染');
+  console.log('- currentPage:', currentPage);
+  console.log('- selectedArticle:', selectedArticle);
+  console.log('- readMode:', readMode);
 
   return (
     <>
